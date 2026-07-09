@@ -5,20 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>كُلِّيَّة — Koliya</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ==================== YOUR ORIGINAL STYLES (UNCHANGED) ==================== */
+/* ==================== LIKED UI BASE (EXACT) ==================== */
 :root{--accent:#4F46E5;--accent-h:#4338CA;--accent-lt:#EEF2FF;--accent-grad:linear-gradient(135deg,#667eea,#764ba2);--danger:#EF4444;--like:#F43F5E;--ok:#22C55E;--r:16px;--max:600px;--t:.25s cubic-bezier(.4,0,.2,1)}
 :root{--shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow:0 4px 20px rgba(0,0,0,.08);--shadow-lg:0 8px 40px rgba(0,0,0,.12)}
 [data-theme="light"]{--bg:#fff;--card:#fff;--hover:#F5F5F5;--txt:#111;--dim:#888;--bd:#eee;--nav:rgba(255,255,255,.92)}
 [data-theme="dark"]{--bg:#080808;--card:#141414;--hover:#1e1e1e;--txt:#f0f0f0;--dim:#666;--bd:#252525;--nav:rgba(8,8,8,.85)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5;overflow:hidden;transition:background var(--t),color var(--t);-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji",sans-serif;background:var(--bg);color:var(--txt);font-size:15px;line-height:1.5;overflow:hidden;transition:background var(--t),color var(--t);-webkit-font-smoothing:antialiased}
 button{cursor:pointer;border:none;background:none;color:inherit;font:inherit}
 input,textarea,select{font:inherit;color:var(--txt)}input::placeholder{color:var(--dim)}
 img{max-width:100%;display:block}.hidden{display:none!important}
 
-/* auth */
+/* AUTH */
 .auth{height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--accent-grad);position:relative}
 .auth-box{width:100%;max-width:400px;background:var(--card);border-radius:24px;padding:40px 32px;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:authIn .5s cubic-bezier(.2,.8,.2,1)}
 .auth-h{text-align:center;margin-bottom:24px}
@@ -36,7 +35,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .gi{width:56px;height:56px;border-radius:50%;background:var(--accent-lt);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
 .gi svg{width:26px;height:26px}
 
-/* layout */
+/* LAYOUT */
 .app{display:grid;grid-template-columns:240px 1fr;height:100vh;overflow:hidden}
 .main{overflow-y:auto;overflow-x:hidden;border-left:1px solid var(--bd);height:100vh}
 .view{max-width:var(--max);margin:0 auto;padding-bottom:70px}
@@ -50,16 +49,16 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .dot{position:absolute;top:-2px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--like);color:#fff;font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center}
 .topbar{display:none}.bnav{display:none}
 
-/* stories - BIG & FUN */
-.stories{display:flex;gap:16px;padding:16px 18px;overflow-x:auto;border-bottom:1px solid var(--bd);scrollbar-width:none}
+/* STORIES */
+.stories{display:flex;gap:12px;padding:12px;overflow-x:auto;border-bottom:1px solid var(--bd);scrollbar-width:none}
 .stories::-webkit-scrollbar{display:none}
 .st{flex-shrink:0;text-align:center;cursor:pointer}
-.ring{width:68px;height:68px;border-radius:50%;padding:3px;background:linear-gradient(45deg,#4F46E5,#7C3AED,#EC4899)}
+.ring{width:62px;height:62px;border-radius:50%;padding:2.5px;background:linear-gradient(45deg,#4F46E5,#7C3AED,#EC4899)}
 .ring.v{background:var(--bd)}
-.ring>div{width:100%;height:100%;border-radius:50%;border:3px solid var(--card);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
-.st .l{font-size:12.5px;margin-top:5px;max-width:74px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ring>div{width:100%;height:100%;border-radius:50%;border:2.5px solid var(--card);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+.st .l{font-size:11px;margin-top:3px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* post */
+/* POST */
 .post{border-bottom:1px solid var(--bd);padding:16px 0;transition:background var(--t)}
 .ph{display:flex;align-items:center;gap:10px;padding:0 14px}
 .av{border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent);overflow:hidden;flex-shrink:0;position:relative}
@@ -78,7 +77,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .cb input{flex:1;background:transparent;border:none;border-bottom:1px solid var(--bd);padding:5px 0}.cb input:focus{outline:none;border-color:var(--accent)}
 .cb button{color:var(--accent);font-weight:600;font-size:14px}
 
-/* compose */
+/* COMPOSE */
 .sh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--nav);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);z-index:5}
 .compose-card{margin:12px 14px;padding:16px;background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:var(--shadow-sm);transition:box-shadow var(--t)}
 .compose-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -88,7 +87,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .compose-act:hover{color:var(--accent)}
 .compose-act svg{width:18px;height:18px}
 
-/* modal */
+/* MODAL */
 .ml{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
 .mb{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px)}
 .mc{position:relative;background:var(--card);border-radius:24px;width:100%;max-width:540px;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:modalIn .3s cubic-bezier(.2,.8,.2,1)}
@@ -96,7 +95,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .tb{background:var(--hover);border-radius:18px;padding:7px 12px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
 .tb svg{width:16px;height:16px;color:var(--accent)}
 
-/* channel */
+/* CHANNEL */
 .chc{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--bd);cursor:pointer}
 .chc:hover{background:var(--hover)}
 .chi{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
@@ -116,53 +115,16 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .btn-f{background:var(--accent);color:#fff;border-radius:10px;padding:8px 20px;font-weight:600;font-size:14px}
 .btn-f.f{background:var(--hover);color:var(--txt)}
 
-/* profile enhancements */
-.link-pill{display:inline-flex;align-items:center;gap:4px;background:var(--accent-lt);color:var(--accent);padding:4px 10px;border-radius:14px;font-size:12px;font-weight:600;text-decoration:none;margin-bottom:4px;transition:filter var(--t)}
-.link-pill:hover{filter:brightness(1.1)}
-.profile-tabs{display:flex;border-top:1px solid var(--bd);margin-top:12px}
-.ptab{flex:1;padding:12px;text-align:center;font-weight:600;font-size:14px;color:var(--dim);cursor:pointer;border-top:2px solid transparent}
-.ptab.active{color:var(--accent);border-top-color:var(--accent)}
-.grid-item-text{font-size:24px;color:var(--dim)}
+/* PROFILE + BANNER */
+.profile-header{position:relative;margin-bottom:8px}
+.banner{height:140px;background:linear-gradient(135deg,#667eea,#764ba2);position:relative;overflow:hidden}
+.banner img{width:100%;height:100%;object-fit:cover}
+.banner-edit{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);color:#111;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer}
+.av-ring{position:absolute;left:16px;bottom:-24px;border:4px solid var(--card);border-radius:50%}
+.profile-info{padding:36px 16px 12px 16px}
+.profile-actions{display:flex;gap:8px;margin:12px 0}
 
-/* POLLS */
-.poll-card{margin:8px 14px;padding:14px;background:var(--hover);border-radius:12px;border:1px solid var(--bd)}
-.poll-q{font-weight:600;font-size:14px;margin-bottom:10px}
-.poll-opt{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--card);border:1.5px solid var(--bd);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:border var(--t);position:relative;overflow:hidden}
-.poll-opt:hover{border-color:var(--accent)}
-.poll-opt.voted{border-color:var(--accent)}
-.poll-bar{position:absolute;left:0;top:0;bottom:0;background:var(--accent-lt);transition:width .5s;z-index:0}
-.poll-opt>*{position:relative;z-index:1}
-.poll-pct{font-size:12px;font-weight:700;color:var(--accent)}
-.poll-total{text-align:center;color:var(--dim);font-size:12px;margin-top:8px}
-
-/* EVENTS */
-.event-card{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--bd);cursor:pointer}
-.event-card:hover{background:var(--hover)}
-.event-date{width:54px;height:54px;border-radius:12px;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.event-day{font-size:20px;font-weight:800;line-height:1}
-.event-mon{font-size:10px;text-transform:uppercase;opacity:.8}
-.event-info{flex:1;min-width:0}
-.event-title{font-weight:600;font-size:15px;margin-bottom:2px}
-.event-meta{color:var(--dim);font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.event-going{background:rgba(34,197,94,.12);color:var(--ok);font-size:11px;padding:2px 8px;border-radius:12px;font-weight:600}
-
-/* Q&A */
-.qa-card{padding:14px;border-bottom:1px solid var(--bd)}
-.qa-q{font-size:15px;font-weight:500;margin-bottom:8px;line-height:1.5}
-.qa-anon{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-size:12px;font-weight:600;margin-bottom:6px}
-.qa-answers{color:var(--dim);font-size:13px;cursor:pointer}
-.qa-answers:hover{text-decoration:underline}
-
-/* HUB */
-.hub-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--bd);border-radius:12px;margin:8px 14px;text-decoration:none;color:var(--txt);transition:border var(--t)}
-.hub-card:hover{border-color:var(--accent)}
-.hub-ic{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.hub-meta{flex:1;min-width:0}
-.hub-name{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hub-sub{color:var(--dim);font-size:12px}
-.hub-type{background:var(--accent-lt);color:var(--accent);font-size:10px;padding:3px 8px;border-radius:10px;font-weight:600;text-transform:uppercase}
-
-/* messages */
+/* MESSAGES */
 .msg-l{display:flex;height:calc(100vh - 52px)}
 .cl{width:280px;border-right:1px solid var(--bd);flex-shrink:0;overflow-y:auto;background:var(--card)}
 .cl-h{padding:16px 14px 12px;border-bottom:1px solid var(--bd);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:space-between}
@@ -189,7 +151,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .chat-input input{flex:1;background:var(--hover);border:1px solid var(--bd);border-radius:20px;padding:11px 16px;font-size:15px}
 .chat-input button{background:var(--accent);color:#fff;padding:0 18px;border-radius:20px;font-weight:600}
 
-/* ORIGINAL GAMIFICATION */
+/* GAMIFICATION + STREAK */
 .streak-badge{display:inline-flex;align-items:center;gap:4px;background:#fef3c7;color:#854d0e;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;margin-left:6px}
 .streak-flame{font-size:16px;animation:flame 1.4s infinite alternate ease-in-out}
 @keyframes flame{from{transform:scale(1)}to{transform:scale(1.15)}}
@@ -205,285 +167,67 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 .lb-score-bar{width:60px;height:4px;background:var(--hover);border-radius:2px;margin-top:4px;overflow:hidden}
 .lb-score-fill{height:100%;background:var(--accent-grad);border-radius:2px;transition:width 1s}
 
-.b-min{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;margin-bottom:7px;background:var(--card);border:1px solid var(--bd)}
-.b-min.earned{background:var(--accent-lt);border-color:#c7d2fe}
-.b-min-ic{width:42px;height:42px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.b-min-ic.locked{background:var(--hover);color:var(--dim);opacity:.65}
-.b-min-ic.earned{background:#c7d2fe;color:var(--accent)}
-.b-min-info{flex:1;min-width:0}
-.b-min-name{font-weight:700;font-size:14px}
-.b-min-name.locked{color:var(--dim)}
-.b-min-desc{font-size:12px;color:var(--dim)}
-.b-min-prog{width:100%;height:5px;background:var(--bd);border-radius:999px;margin-top:5px;overflow:hidden}
-.b-min-prog-fill{height:100%;background:var(--accent-grad);transition:width .6s cubic-bezier(.2,.9,.3,1)}
-.b-min-check{color:#22c55e;margin-left:4px}
+/* DM PROFILE SHEET (INSTA STYLE) */
+.dm-profile-sheet{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.dm-profile-sheet .sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.dm-profile-content{position:relative;width:100%;max-width:620px;background:var(--card);border-radius:22px 22px 0 0;padding-bottom:16px;box-shadow:0 -10px 40px rgba(0,0,0,.25);animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 
-.ach-unlock{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
-.ach-card{background:var(--card);border-radius:22px;padding:28px 24px;max-width:300px;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.3);position:relative;overflow:hidden}
-.ach-shine{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);animation:shine 1.4s forwards}
-@keyframes shine{to{transform:translateX(200%) translateY(200%)}}
+.dm-profile-header{padding:16px;text-align:center;border-bottom:1px solid var(--bd)}
+.dm-profile-header .big-av{width:86px;height:86px;margin:0 auto 8px;font-size:32px}
+.dm-profile-actions{padding:4px 14px}
+.dm-action{display:flex;align-items:center;gap:12px;padding:13px 10px;border-radius:14px;margin-bottom:2px;font-weight:600;cursor:pointer}
+.dm-action:active{background:var(--hover)}
+.dm-action.danger{color:var(--danger)}
 
-.count-up{display:inline-block}
-.mood-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
-.mood-dot.studying{background:#3B82F6;box-shadow:0 0 8px rgba(59,130,246,.5)}
-.mood-dot.chilling{background:#22C55E;box-shadow:0 0 8px rgba(34,197,94,.5)}
-.mood-dot.busy{background:#EF4444;box-shadow:0 0 8px rgba(239,68,68,.5)}
-.mood-dot.offline{background:var(--dim)}
-.flash-note{background:var(--accent-grad);border-radius:14px;padding:16px;margin:8px 14px;color:#fff;position:relative;overflow:hidden}
-.flash-timer{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.2);border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600}
+.media-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:6px 14px}
+.media-grid img,.media-grid video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer}
 
-@keyframes pop{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes floatUp{from{transform:translateY(6px);opacity:0}to{transform:translateY(0);opacity:1}}
-.post,.chc,.convo{animation:floatUp .25s ease forwards}
-.like-pop{animation:likePop .35s ease forwards}
-@keyframes likePop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+/* STREAK TIMER */
+.streak-timer{font-size:11px;font-weight:700;color:#c2410f;background:#fef3c7;padding:1px 6px;border-radius:5px;margin-left:5px;white-space:nowrap}
 
-.ni{transition:transform .15s ease}
-.ni:active{transform:scale(0.96)}
+.streak-bar{display:flex;align-items:center;gap:8px;padding:5px 14px;background:linear-gradient(90deg,#fef3c7,#fefce8);border-bottom:1px solid #fde047;color:#854d0e;font-size:13px;font-weight:600}
+.streak-bar.dark{background:linear-gradient(90deg,#451a03,#78350f);color:#fcd34d;border-bottom-color:#451a03}
 
+/* BETTER ADD STORY */
+.st.add-story .ring{border:3px dashed var(--accent)!important;background:var(--accent-lt)!important}
+.st.add-story .ring > div{color:var(--accent);font-size:26px;font-weight:800}
+
+/* ACTION BUTTONS - BIGGER + PLAYFUL */
+.action-row{display:flex;gap:8px;padding:8px 14px 4px}
+.action-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--hover);padding:11px 10px;border-radius:16px;font-weight:700;font-size:14.5px;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.action-btn:hover{background:#e8e8e8;transform:translateY(-1px)}
+.action-btn:active{transform:scale(0.95);background:#ddd}
+.action-btn .emoji{font-size:19px}
+
+/* PLAYFUL ANIMATIONS */
+.post,.chc,.convo,.st{animation:floatUp .28s ease forwards}
+@keyframes floatUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+.like-pop{animation:likePop .4s ease forwards}
+@keyframes likePop{0%{transform:scale(1)}40%{transform:scale(1.55)}100%{transform:scale(1)}}
+.btn:active, .action-btn:active, .ni:active{transform:scale(0.94)}
 .fab{position:fixed;bottom:80px;right:20px;width:56px;height:56px;border-radius:999px;background:var(--accent-grad);color:white;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 10px 25px rgba(79,70,229,.4);z-index:60;transition:transform .2s}
-.fab:active{transform:scale(0.92)}
+.fab:active{transform:scale(0.88) rotate(12deg)}
 
+/* TOAST */
 .toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,0);background:#111;color:#fff;padding:10px 18px;border-radius:999px;font-size:13.5px;font-weight:500;box-shadow:0 6px 25px rgba(0,0,0,.3);z-index:999;animation:toastIn .3s forwards}
 @keyframes toastIn{from{transform:translate(-50%,20px);opacity:0}}
 
+/* BETTER EMOJIS (iOS style) */
+.emoji, .streak-flame, .action-btn, .bub, .pt { font-family: -apple-system, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+.streak-flame { font-size: 1.2em; }
+
+/* Bigger & playful everywhere */
+.compose-act, .dm-action { transition: transform .1s, background .1s; }
+.compose-act:active, .dm-action:active { transform: scale(0.96); }
+
 @media(max-width:1100px){.app{grid-template-columns:68px 1fr}.logo{display:none}.side{padding:14px 6px}.side::before{content:"🎓";font-size:24px;text-align:center;display:block;padding:6px}.ni{justify-content:center}.ni span:not(.dot){display:none}}
 @media(max-width:560px){.app{grid-template-columns:1fr}.side{display:none}.main{border:none}.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:var(--nav);backdrop-filter:blur(12px);z-index:50}.bnav{display:flex;justify-content:space-around;position:fixed;bottom:0;left:0;right:0;background:var(--nav);backdrop-filter:blur(12px);border-top:1px solid var(--bd);padding:8px 0;z-index:50}.bn{flex:1;display:flex;justify-content:center;color:var(--dim);position:relative;padding:4px}.bn.on{color:var(--accent)}.bn svg{width:22px;height:22px}.msg-l{flex-direction:column;height:calc(100vh - 110px)}.cl{width:100%;flex-shrink:0}.cl.sc{display:none}.cw{display:none!important}.cw.on{display:flex!important}.fab{bottom:70px}.view{padding-bottom:60px}}
-
-/* ==================== NEW PREMIUM UI (ADDED ON TOP - NO BREAKING) ==================== */
-
-/* BIG PREMIUM ACTION BUTTONS */
-.action-row {
-  display: flex;
-  gap: 10px;
-  padding: 14px 18px 10px;
-  background: var(--bg);
-}
-.action-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  background: var(--hover);
-  padding: 19px 16px;
-  border-radius: 24px;
-  font-weight: 900;
-  font-size: 17.5px;
-  cursor: pointer;
-  transition: transform .1s cubic-bezier(0.4, 0, 0.2, 1), 
-              background .08s, 
-              box-shadow .12s;
-  box-shadow: 0 5px 18px rgba(0,0,0,.1);
-  min-height: 62px;
-  position: relative;
-  overflow: hidden;
-}
-.action-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(rgba(255,255,255,.15), transparent);
-  opacity: 0;
-  transition: opacity .2s;
-}
-.action-btn:hover {
-  background: #f4f4f4;
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 22px rgba(0,0,0,.12);
-}
-.action-btn:hover::after { opacity: 1; }
-.action-btn:active {
-  transform: scale(0.94);
-  box-shadow: 0 2px 6px rgba(0,0,0,.1);
-}
-.action-btn.danger {
-  color: #ef4444;
-  font-weight: 900;
-}
-.action-btn.danger:hover {
-  background: #fee2e2;
-}
-
-/* Instagram-style DM profile sheet */
-.dm-profile-sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-.dm-profile-sheet .sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.55); }
-.dm-profile-content {
-  position: relative;
-  width: 100%;
-  max-width: 620px;
-  background: var(--card);
-  border-radius: 22px 22px 0 0;
-  padding-bottom: 16px;
-  box-shadow: 0 -10px 40px rgba(0,0,0,.25);
-  animation: slideUp .25s ease;
-}
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-.dm-profile-header { padding: 16px; text-align: center; border-bottom: 1px solid var(--bd); }
-.dm-profile-header .big-av { width: 86px; height: 86px; margin: 0 auto 8px; font-size: 32px; }
-.dm-profile-actions { padding: 4px 14px; }
-.dm-action {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 10px; border-radius: 14px; margin-bottom: 2px; font-weight: 600; cursor: pointer;
-}
-.dm-action:active { background: var(--hover); }
-.dm-action.danger { color: var(--danger); }
-
-.media-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3px;
-  padding: 6px 14px;
-}
-.media-grid img, .media-grid video {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* Streak timer in DM header */
-.streak-timer {
-  font-size: 11px;
-  font-weight: 700;
-  color: #c2410f;
-  background: #fef3c7;
-  padding: 1px 6px;
-  border-radius: 5px;
-  margin-left: 5px;
-  white-space: nowrap;
-}
-
-.streak-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 14px;
-  background: linear-gradient(90deg, #fef3c7, #fefce8);
-  border-bottom: 1px solid #fde047;
-  color: #854d0e;
-  font-size: 13px; font-weight: 600;
-}
-.streak-bar.dark {
-  background: linear-gradient(90deg, #451a03, #78350f);
-  color: #fcd34d;
-  border-bottom-color: #451a03;
-}
-
-/* Better stories Add button */
-.st.add-story .ring {
-  border: 3px dashed var(--accent) !important;
-  background: var(--accent-lt) !important;
-}
-.st.add-story .ring > div {
-  color: var(--accent);
-  font-size: 26px;
-  font-weight: 800;
-}
-
-/* Small icon buttons */
-.icon-btn {
-  width: 34px; height: 34px; border-radius: 999px;
-  background: var(--hover); display: flex; align-items: center; justify-content: center;
-  font-size: 17px;
-}
-.icon-btn:active { transform: scale(0.9); }
-
-/* ====================== BIG PREMIUM ANIMATIONS ====================== */
-@keyframes postPop {
-  from { transform: translateY(20px) scale(0.96); opacity: 0; }
-  to   { transform: translateY(0) scale(1); opacity: 1; }
-}
-@keyframes storyPop {
-  from { transform: scale(0.7) rotate(-8deg); opacity: 0; }
-  to   { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-@keyframes btnPop {
-  0%   { transform: scale(0.6); }
-  50%  { transform: scale(1.08); }
-  100% { transform: scale(1); }
-}
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
-.post {
-  animation: postPop .4s cubic-bezier(.2,.9,.3,1) forwards;
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-.post:active {
-  transform: scale(0.985);
-}
-
-.st {
-  animation: storyPop .35s ease forwards;
-  transition: transform .2s cubic-bezier(.2,.9,.3,1);
-}
-.st:active {
-  transform: scale(0.9) !important;
-}
-
-.action-btn {
-  transition: transform .12s cubic-bezier(.4,0,.2,1),
-              box-shadow .12s ease,
-              background .1s;
-}
-.action-btn:active {
-  animation: btnPop .25s ease;
-}
-
-.st.add-story {
-  animation: float 2s ease-in-out infinite, storyPop .4s ease forwards;
-}
-
-/* BIG PROMINENT ADD STORY BUTTON */
-.st.add-story .ring {
-  width: 74px !important;
-  height: 74px !important;
-  border: 4px dashed var(--accent) !important;
-  background: var(--accent-lt) !important;
-  box-shadow: 0 6px 20px rgba(79,70,229,.35);
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.st.add-story .ring > div {
-  font-size: 34px;
-  font-weight: 900;
-  color: var(--accent);
-}
-.st.add-story:hover .ring {
-  transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 8px 26px rgba(79,70,229,.5);
-}
-
-/* More juicy general animations */
-.post, .chc, .convo, .event-card, .hub-card, .qa-card {
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.post:hover, .chc:hover, .convo:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0,0,0,.08);
-}
-
-.btn, .action-btn {
-  position: relative;
-  overflow: hidden;
-}
-.btn:active, .action-btn:active {
-  transform: scale(0.94);
-}
 </style>
 </head>
 <body data-theme="light">
 
-<!-- AUTH - YOUR ORIGINAL -->
+<!-- AUTH -->
 <div id="auth" class="auth">
 <div class="auth-box">
 <div class="auth-h"><div class="logo">كُلِّيَّة</div><div class="sub">KOLIYA · Student Network</div></div>
@@ -496,21 +240,21 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 <div id="signupForm" class="f hidden">
 <input class="inp" id="sname" placeholder="Full name" value="Sara Benali">
 <input class="inp" id="suser" placeholder="Username" value="sara_cs">
-<input class="inp" id="scard" placeholder="Carte Étudiant / بطاقة الطالب" value="20241234">
-<input class="inp" id="sfac" placeholder="Faculty / Major" value="Computer Science">
+<input class="inp" id="scard" placeholder="Carte Étudiant" value="20241234">
+<input class="inp" id="sfac" placeholder="Faculty" value="Computer Science">
 <input class="inp" id="semail" placeholder="Gmail address" value="sara.benali@gmail.com">
-<div style="position:relative"><input type="password" class="inp" id="spw" value="demo123" placeholder="Password (min 6 chars)" style="padding-right:36px"><button class="eye" onclick="let i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'">👁</button></div>
-<button class="btn" onclick="doSignup()">Submit</button>
+<div style="position:relative"><input type="password" class="inp" id="spw" value="demo123" placeholder="Password (min 6)" style="padding-right:36px"><button class="eye" onclick="let i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'">👁</button></div>
+<button class="btn" onclick="doSignup()">Submit (Request access)</button>
 <div class="sw">Already approved? <a onclick="showAuth('login')">Log in</a></div>
 </div>
 <div id="pendingForm" class="f hidden">
-<div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+<div class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
 <h3 style="text-align:center;font-size:17px">Application received</h3>
 <p style="text-align:center;color:var(--dim);font-size:14px">Awaiting admin approval.</p>
 <button class="btn-g btn" onclick="showAuth('login')">Back</button>
 </div>
 <div id="rejectedForm" class="f hidden">
-<div class="gi" style="background:rgba(239,68,68,.1);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+<div class="gi" style="background:rgba(239,68,68,.1);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
 <h3 style="text-align:center;font-size:17px">Access denied</h3>
 <button class="btn-g btn" onclick="showAuth('login')">Back</button>
 </div>
@@ -522,19 +266,18 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 <aside class="side">
 <div class="logo" onclick="go('feed')">كُلِّيَّة</div>
 <nav class="nav">
-<button class="ni" data-r="feed" onclick="go('feed')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
-<button class="ni" data-r="explore" onclick="go('explore')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><span>Explore</span></button>
-<button class="ni" data-r="trending" onclick="go('trending')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 3v4h-4"/></svg><span>Trending</span></button>
-<button class="ni" data-r="channels" onclick="go('channels')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Channels</span></button>
-<button class="ni nd" data-r="messages" onclick="go('messages')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>Messages</span><span class="dot" id="dot1"></span></button>
-<button class="ni" data-r="leaderboard" onclick="go('leaderboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span>Ranking</span></button>
-<button class="ni" data-r="saved" onclick="go('saved')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Saved</span></button>
-<button class="ni" data-r="events" onclick="go('events')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Events</span></button>
-<button class="ni" data-r="qa" onclick="go('qa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Q&amp;A</span></button>
-<button class="ni" data-r="hub" onclick="go('hub')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg><span>Hub</span></button>
-<button class="ni nd" data-r="activity" onclick="go('activity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span>Activity</span><span class="notif-dot" id="notifDot"></span></button>
-<button class="ni" data-r="profile" onclick="go('profile','me')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></button>
-<button class="ni admin-only hidden" data-r="admin" onclick="go('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin</span></button>
+<button class="ni" data-r="feed" onclick="go('feed')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+<button class="ni" data-r="explore" onclick="go('explore')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><span>Explore</span></button>
+<button class="ni" data-r="trending" onclick="go('trending')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 3v4h-4"/></svg><span>Trending</span></button>
+<button class="ni" data-r="channels" onclick="go('channels')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span>Channels</span></button>
+<button class="ni nd" data-r="messages" onclick="go('messages')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg><span>Messages</span><span class="dot" id="dot1"></span></button>
+<button class="ni" data-r="leaderboard" onclick="go('leaderboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><span>Ranking</span></button>
+<button class="ni" data-r="saved" onclick="go('saved')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg><span>Saved</span></button>
+<button class="ni" data-r="events" onclick="go('events')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Events</span></button>
+<button class="ni" data-r="qa" onclick="go('qa')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg><span>Q&amp;A</span></button>
+<button class="ni" data-r="hub" onclick="go('hub')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg><span>Hub</span></button>
+<button class="ni" data-r="profile" onclick="go('profile','me')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></button>
+<button class="ni admin-only hidden" data-r="admin" onclick="go('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>Admin</span></button>
 </nav>
 <div style="margin-top:auto;padding:10px 4px 4px;font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px">
 <div onclick="toggleTheme()" style="cursor:pointer">🌗</div>
@@ -547,7 +290,7 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 <div class="logo" style="font-size:21px">كُلِّيَّة</div>
 <div style="display:flex;gap:10px;align-items:center">
 <div onclick="toggleTheme()" style="font-size:19px;cursor:pointer">🌗</div>
-<div onclick="go('profile','me')" style="cursor:pointer">${avatarHTML({username:"me"}, 30)}</div>
+<div onclick="go('profile','me')" style="cursor:pointer" id="topAvatar"></div>
 </div>
 </div>
 <div id="view" class="view"></div>
@@ -561,9 +304,9 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 </div>
 </div>
 
-<div id="fab" class="fab" onclick="openComposer()" style="display:none">✏️</div>
+<div id="fab" class="fab" onclick="openComposer()">✏️</div>
 
-<!-- Composer Modal - YOUR ORIGINAL -->
+<!-- Composer -->
 <div id="compModal" class="ml hidden" onclick="if(event.target.id==='compModal')closeM('compModal')">
 <div class="mc" onclick="event.stopImmediatePropagation()">
 <div class="mh">
@@ -596,20 +339,32 @@ img{max-width:100%;display:block}.hidden{display:none!important}
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ==================== YOUR ORIGINAL LOGIC (KEPT INTACT) ====================
+// ==================== SUPABASE + CONFIG ====================
+const SUPA_URL = "https://mveaedoxvmmscnkvenqh.supabase.co";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12ZWFlZG94dm1tc2Nua3ZlbnFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODg2OTcsImV4cCI6MjA5ODg2NDY5N30.IWK2kiobIVQ8R_gpK6C-HWzD4n9Ex1cwvSP96nL5j5k";
+
+let supabaseClient = null;
+let USE_SUPA = false;
+try {
+  supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+  USE_SUPA = true;
+} catch(e) { USE_SUPA = false; }
+
 let me = null;
 let data = { users: [], posts: [], messages: [], stories: [], channels: [], events: [], qa: [] };
 let compImage = null, compMedia = null;
 let pollTimer = null;
 let activeChat = null;
-let USE_SUPA = false;
 let lastBadgeCount = 0;
 
+// ==================== LOCAL STORAGE ====================
 function saveLocal() { localStorage.setItem("koliya_data", JSON.stringify(data)); }
 function loadLocal() { const saved = localStorage.getItem("koliya_data"); if (saved) data = JSON.parse(saved); }
 function uid(p = "id") { return p + "_" + Math.random().toString(36).slice(2, 10); }
 
+// ==================== SEED (DEMO) ====================
 function seedData() {
   if (data.users.length > 0) return;
   const n = Date.now();
@@ -621,21 +376,18 @@ function seedData() {
   ];
   data.channels = [
     {id:"ch1", name:"Computer Science", description:"Algorithms, ML, Web Dev", icon:"💻", color:"#4F46E5", created_by:"u_sara", members:["u_sara","u_youssef","u_leila"], type:"public", post_permission:"all", muted:[], created_at:new Date(n-1000000000).toISOString()},
-    {id:"ch2", name:"Study Tips", description:"How to survive uni", icon:"📚", color:"#22C55E", created_by:"u_leila", members:["u_sara","u_youssef","u_leila"], type:"public", post_permission:"all", muted:[], created_at:new Date(n-800000000).toISOString()},
-    {id:"ch3", name:"Biology", description:"Genetics, anatomy", icon:"🧬", color:"#22C55E", created_by:"u_leila", members:["u_leila","u_youssef"], type:"public", post_permission:"admins", muted:[], created_at:new Date(n-500000000).toISOString()}
+    {id:"ch2", name:"Study Tips", description:"How to survive uni", icon:"📚", color:"#22C55E", created_by:"u_leila", members:["u_sara","u_youssef","u_leila"], type:"public", post_permission:"all", muted:[], created_at:new Date(n-800000000).toISOString()}
   ];
   data.posts = [
     {id:"p1", userId:"u_sara", text:"Finished my ML project! 89% accuracy classifier. #ML #CS", image:null, media:null, channelId:null, likes:["u_youssef","u_leila"], comments:[{id:"c1", userId:"u_youssef", text:"Share the code?", createdAt:n-30000000}], saved:[], createdAt:new Date(n-40000000).toISOString(), pinned:false},
-    {id:"p2", userId:"u_youssef", text:"Anyone has quantum tunneling notes? #physics", image:null, media:null, channelId:null, likes:["u_sara"], comments:[], saved:[], createdAt:new Date(n-20000000).toISOString(), pinned:false},
-    {id:"p3", userId:"u_leila", text:"Anatomy tip: draw systems by hand. Works wonders! #study", image:null, media:null, channelId:null, likes:["u_youssef","u_sara"], comments:[], saved:["u_sara"], createdAt:new Date(n-10000000).toISOString(), pinned:false}
+    {id:"p2", userId:"u_youssef", text:"Anyone has quantum tunneling notes? #physics", image:null, media:null, channelId:null, likes:["u_sara"], comments:[], saved:[], createdAt:new Date(n-20000000).toISOString(), pinned:false}
   ];
   data.messages = [
     {id:"m1", sender:"u_youssef", receiver:"u_sara", text:"Did you get problem 4?", createdAt:n-3000000},
     {id:"m2", sender:"u_sara", receiver:"u_youssef", text:"Yeah, integration by parts!", createdAt:n-1000000}
   ];
   data.events = [
-    {id:"ev1", title:"CS Hackathon", description:"Build something cool in 24h", date:new Date(n+2*86400000).toISOString(), location:"Main Hall", createdBy:"u_sara", going:["u_sara","u_youssef"], created_at:new Date(n-86400000).toISOString()},
-    {id:"ev2", title:"Midterm Review — Biology", date:new Date(n+4*86400000).toISOString(), location:"Room B12", createdBy:"u_leila", going:["u_leila"], created_at:new Date(n-50000000).toISOString()}
+    {id:"ev1", title:"CS Hackathon", description:"Build something cool in 24h", date:new Date(n+2*86400000).toISOString(), location:"Main Hall", createdBy:"u_sara", going:["u_sara","u_youssef"], created_at:new Date(n-86400000).toISOString()}
   ];
   data.qa = [
     {id:"qa1", userId:"u_youssef", text:"How do you remember all the Krebs cycle steps?", anonymous:false, answers:[{userId:"u_leila", text:"Make a song or acronym!", createdAt:n-20000000}], createdAt:n-40000000}
@@ -643,6 +395,7 @@ function seedData() {
   saveLocal();
 }
 
+// ==================== UTILS ====================
 function esc(str) { if(!str) return ""; return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function timeAgo(ts) {
   const d = typeof ts === "string" ? new Date(ts) : new Date(ts);
@@ -656,13 +409,15 @@ function getUser(id) { return data.users.find(u => u.id === id); }
 function getPost(id) { return data.posts.find(p => p.id === id); }
 function allUsers() { return data.users; }
 function allPosts() { return data.posts; }
+
 function toast(msg, type="ok") {
   const t = document.createElement("div");
   t.className = "toast";
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2400);
+  setTimeout(() => t.remove(), 2600);
 }
+
 function modal(title, html) {
   const id = "genModal";
   let el = document.getElementById(id);
@@ -685,14 +440,18 @@ function closeM(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
 }
+
 function avatarHTML(u, size=36) {
   if (!u) u = {username: "?", name: "?"};
   const initials = (u.username || u.name || "?").slice(0,2).toUpperCase();
   const color = u.role === "admin" ? "#4F46E5" : "#6366f1";
-  return `<div class="av" style="width:${size}px;height:${size}px;background:${u.avatar ? 'transparent' : color};font-size:${size*0.42}px">${u.avatar ? `<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : initials}</div>`;
+  if (u.avatar) {
+    return `<div class="av" style="width:${size}px;height:${size}px;background:transparent;overflow:hidden"><img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`;
+  }
+  return `<div class="av" style="width:${size}px;height:${size}px;background:${color};font-size:${size*0.42}px">${initials}</div>`;
 }
 
-// ==================== YOUR ORIGINAL GAMIFICATION (KEPT) ====================
+// ==================== STREAKS ====================
 function getStreak(uid){
   try{return parseInt(localStorage.getItem("streak_"+uid)||"0",10);}catch(e){return 0;}
 }
@@ -711,7 +470,7 @@ function streakHTML(uid){
   return '<span class="streak-badge"><span class="streak-flame">🔥</span> '+s+' day'+(s===1?"":"s")+'</span>';
 }
 
-// Per-DM Streak + Timer (NEW - safe addition)
+// DM Streak + Timer
 function getDMStreak(a,b){
   const k=[a,b].sort().join("_");
   return parseInt(localStorage.getItem("dmstreak_"+k)||"0",10);
@@ -738,7 +497,7 @@ function getStreakTimeLeft(a,b){
   return Math.floor(d/(1000*60*60)) + "h " + Math.floor((d%(1000*60*60))/(1000*60)) + "m left";
 }
 
-// ==================== DM PROFILE SHEET (NEW - Instagram style) ====================
+// ==================== DM PROFILE SHEET ====================
 function showDMProfile(partnerId){
   const p = getUser(partnerId);
   if(!p) return;
@@ -809,7 +568,7 @@ function viewSharedMedia(url){
   document.body.appendChild(d);
 }
 
-// ==================== ENHANCED showChat (with tappable avatar + timer) ====================
+// ==================== CHAT ====================
 function showChat(uid){
   const o = getUser(uid); if(!o) return;
   activeChat = uid;
@@ -835,7 +594,7 @@ function showChat(uid){
   const time = streak>0 ? getStreakTimeLeft(me.id, uid) : "";
   const nick = localStorage.getItem("nick_"+me.id+"_"+uid) || o.username;
 
-  const pane = document.getElementById("chatPane");
+  const pane = document.getElementById("chatPane") || createChatPane();
   pane.innerHTML = `
     <div class="sh" style="position:sticky;top:0">
       <button onclick="closeChat()">←</button>
@@ -849,7 +608,7 @@ function showChat(uid){
       </div>
       <button onclick="showDMProfile('${uid}')" class="icon-btn" style="margin-left:auto">⋯</button>
     </div>
-    <div class="cb2" id="chatBody">${bs||empty("Say hi!","")}</div>
+    <div class="cb2" id="chatBody" style="padding:12px 14px">${bs||empty("Say hi!","")}</div>
     <div style="display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--bd);align-items:center">
       <label style="cursor:pointer;padding:8px;border-radius:50%;background:var(--hover)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.93 8.8l-8.57 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><input type="file" accept="image/*,video/*" hidden onchange="chatAttach(event)"></label>
       <input id="msgInput" class="inp" placeholder="Message..." onkeydown="if(event.key==='Enter')sendChat()" style="flex:1">
@@ -868,14 +627,61 @@ function showChat(uid){
   setTimeout(()=>{ const b=document.getElementById("chatBody"); if(b) b.scrollTop=b.scrollHeight; },60);
 }
 
-// ==================== IMPROVED FEED WITH BIG BUTTONS ====================
+function createChatPane() {
+  const view = document.getElementById("view");
+  view.innerHTML = `<div class="msg-l"><div class="cl" id="convList"></div><div class="cw" id="chatPane"></div></div>`;
+  return document.getElementById("chatPane");
+}
+
+function getMsgs(a,b) {
+  return (data.messages||[]).filter(m => 
+    (m.sender===a && m.receiver===b) || (m.sender===b && m.receiver===a)
+  ).sort((x,y)=> new Date(x.createdAt)-new Date(y.createdAt));
+}
+
+function sendChat(){
+  const inp = document.getElementById("msgInput");
+  if(!inp || !activeChat) return;
+  const txt = inp.value.trim();
+  if(!txt) return;
+  
+  const msg = {id:uid("m"), sender:me.id, receiver:activeChat, text:txt, createdAt:new Date().toISOString()};
+  data.messages.push(msg);
+  saveLocal();
+  updateDMStreak(me.id, activeChat);
+  
+  inp.value = "";
+  
+  // Refresh chat
+  showChat(activeChat);
+  
+  // Supabase push
+  if (USE_SUPA && supabaseClient) {
+    supabaseClient.from('messages').insert({
+      id: msg.id,
+      sender_id: me.id,
+      receiver_id: activeChat,
+      text: txt,
+      created_at: msg.createdAt
+    }).then(r => { if (r.error) console.log(r.error); });
+  }
+}
+
+function closeChat(){
+  activeChat = null;
+  const cl=document.getElementById("convList"); if(cl) cl.classList.remove("sc");
+  const pane = document.getElementById("chatPane");
+  if(pane) pane.innerHTML = `<div style="padding:40px;color:var(--dim);text-align:center">Select a conversation.</div>`;
+}
+
+// ==================== FEED (HOME) ====================
 function renderFeed(c){
   const visible = new Set([me.id, ...me.following]);
   let posts = allPosts().filter(p => !p.channelId && visible.has(p.userId));
 
   let h = `<div class="sh"><b style="font-size:18px">كُلِّيَّة</b><button onclick="openComposer()" style="font-size:22px;color:var(--accent)">+</button></div>`;
 
-  // Stories with clear Add button
+  // Stories
   const s = storyUsers().filter(x => me.following.includes(x.userId) || x.userId===me.id);
   if(s.length || me.following.length){
     h += `<div class="stories">
@@ -884,6 +690,7 @@ function renderFeed(c){
     h += `</div>`;
   }
 
+  // Compose card
   h += `<div class="compose-card">
     <div class="compose-card-top">${avatarHTML(me,40)}
       <div class="compose-card-input" onclick="openComposer()">What's on your mind?</div>
@@ -898,15 +705,14 @@ function renderFeed(c){
 
   if(!posts.length) h += empty("Welcome!","Share your first post.");
   else h += posts.map(postCard).join("");
+  
   c.innerHTML = h;
 }
 
-// Post card with BIG buttons + delete support
 function postCard(p){
   const a = p.anonymous ? {username:"Anonymous", name:"Student", avatar:null, role:"student"} : getUser(p.userId);
   if(!a) return "";
-  const lk = p.likes.includes(me.id);
-  const isMine = p.userId === me.id;
+  const lk = (p.likes||[]).includes(me.id);
   let media = "";
   if(p.image) media = `<div class="pm"><img src="${p.image}"></div>`;
   if(p.media && p.media.type==="video") media = `<div class="pm"><video src="${p.media.data}" controls></video></div>`;
@@ -918,266 +724,765 @@ function postCard(p){
     ${p.text?`<div class="pt">${esc(p.text)}</div>`:""}
     ${media}
     <div class="action-row">
-      <div class="action-btn" onclick="likePost('${p.id}')">${lk?"❤️":"🤍"} <span>${p.likes.length||""}</span></div>
+      <div class="action-btn" onclick="likePost('${p.id}')">${lk?"❤️":"🤍"} <span>${(p.likes||[]).length||""}</span></div>
       <div class="action-btn" onclick="openPostDetail('${p.id}')">💬 <span>${(p.comments||[]).length||""}</span></div>
       <div class="action-btn" onclick="sharePostToDM('${p.id}')">📤</div>
-      ${isMine ? `<div class="action-btn danger" style="background:#fee2e2;color:#ef4444;font-weight:900;" onclick="event.stopImmediatePropagation(); deletePost('${p.id}')">🗑️ Delete</div>` : `<div class="action-btn" onclick="savePost('${p.id}')">🔖</div>`}
+      <div class="action-btn" onclick="savePost('${p.id}')">🔖</div>
+      ${p.userId===me.id ? `<div class="action-btn" style="color:var(--danger)" onclick="delPrompt('${p.id}')">🗑️</div>` : ""}
     </div>
     ${cmt}
     <div class="cb"><input id="ci-${p.id}" placeholder="Comment..." onkeydown="if(event.key==='Enter')doComment('${p.id}',this.value,this)"><button onclick="doComment('${p.id}',document.getElementById('ci-${p.id}').value)">Post</button></div>
   </div>`;
 }
 
-function deletePost(postId) {
-  if (!confirm("Delete this post?")) return;
-  
-  const idx = data.posts.findIndex(p => p.id === postId);
-  if (idx === -1) return;
-
-  // Find the post element reliably
-  let el = document.querySelector(`.post[onclick*="${postId}"]`);
-  if (!el) {
-    // fallback: find any post containing the delete button for this id
-    const deleteBtns = document.querySelectorAll('.action-btn.danger');
-    for (let btn of deleteBtns) {
-      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(postId)) {
-        el = btn.closest('.post');
-        break;
-      }
-    }
+function likePost(pid){
+  const p = getPost(pid);
+  if(!p) return;
+  if(!p.likes) p.likes = [];
+  const i = p.likes.indexOf(me.id);
+  if(i === -1) p.likes.push(me.id);
+  else p.likes.splice(i,1);
+  saveLocal();
+  if (USE_SUPA && supabaseClient) {
+    supabaseClient.from('posts').update({likes: p.likes}).eq('id', pid);
   }
+  const el = document.getElementById("view");
+  if (el) renderFeed(el);
+}
+
+function savePost(pid){
+  const p = getPost(pid);
+  if(!p) return;
+  if(!p.saved) p.saved = [];
+  const i = p.saved.indexOf(me.id);
+  if(i === -1) p.saved.push(me.id);
+  else p.saved.splice(i,1);
+  saveLocal();
+  toast("Saved!");
+}
+
+function doComment(pid, txt, el){
+  txt = txt.trim();
+  if(!txt) return;
+  const p = getPost(pid);
+  if(!p) return;
+  if(!p.comments) p.comments = [];
+  p.comments.push({id:uid("c"), userId:me.id, text:txt, createdAt:new Date().toISOString()});
+  saveLocal();
+  if (USE_SUPA && supabaseClient) {
+    supabaseClient.from('posts').update({comments: p.comments}).eq('id', pid);
+  }
+  if (el) el.value = "";
+  const view = document.getElementById("view");
+  if (view) renderFeed(view);
+}
+
+function delPrompt(id){
+  modal("Delete post?", `<div style="padding:16px 16px 0"><p>Delete this post permanently?</p></div>
+    <div style="padding:16px;display:flex;gap:10px">
+      <button class="btn-g btn" style="flex:1" onclick="closeM('genModal')">Cancel</button>
+      <button class="btn-r" style="flex:1" onclick="confirmDel('${id}')">Delete</button>
+    </div>`);
+}
+function confirmDel(id){
+  data.posts = data.posts.filter(p=>p.id!==id);
+  saveLocal();
+  if (USE_SUPA && supabaseClient) {
+    supabaseClient.from('posts').delete().eq('id', id);
+  }
+  closeM("genModal");
+  toast("Deleted.");
+  const view = document.getElementById("view");
+  if (view) renderFeed(view);
+}
+
+// ==================== STORIES ====================
+function storyUsers(){
+  if(!data.stories) data.stories = [];
+  const seen = new Set();
+  return data.stories.filter(s => {
+    if(seen.has(s.userId)) return false;
+    seen.add(s.userId);
+    return true;
+  });
+}
+
+function addStory(){
+  modal("Add Story", `
+    <div style="padding:18px">
+      <div style="margin-bottom:12px;font-weight:600">Share a story</div>
+      <div onclick="createTextStory()" class="action-btn" style="margin-bottom:8px">✏️ Write text story</div>
+      <label class="action-btn" style="margin-bottom:8px">
+        📷 Photo / Video
+        <input type="file" accept="image/*,video/*" hidden onchange="uploadStory(event)">
+      </label>
+      <div onclick="closeM('genModal')" class="btn-g" style="width:100%;margin-top:8px;text-align:center;padding:11px">Cancel</div>
+    </div>
+  `);
+}
+
+function createTextStory(){
+  const txt = prompt("What's your story?");
+  if(!txt) return;
+  if(!data.stories) data.stories = [];
+  data.stories.push({id:uid("s"), userId:me.id, text:txt, createdAt:Date.now()});
+  saveLocal();
+  document.querySelector(".ml")?.remove();
+  toast("Story posted!");
+  go("feed");
+}
+
+function uploadStory(e){
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    if(!data.stories) data.stories = [];
+    data.stories.push({id:uid("s"), userId:me.id, media:ev.target.result, createdAt:Date.now()});
+    saveLocal();
+    document.querySelector(".ml")?.remove();
+    toast("Story posted!");
+    go("feed");
+  };
+  r.readAsDataURL(f);
+}
+
+function viewStory(uid){
+  const stories = (data.stories||[]).filter(s=>s.userId===uid);
+  if(!stories.length) return;
+  const s = stories[stories.length-1];
+  const el = document.createElement("div");
+  el.style.cssText = "position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;z-index:300";
+  el.innerHTML = `
+    <div style="position:absolute;top:20px;left:20px;color:#fff;font-size:13px">Swipe down to close</div>
+    <div onclick="event.stopImmediatePropagation()" style="max-width:92%;max-height:86%;background:#111;border-radius:16px;padding:16px;color:#fff;text-align:center">
+      ${s.text ? `<div style="font-size:22px;padding:30px 10px">${esc(s.text)}</div>` : ""}
+      ${s.media ? `<img src="${s.media}" style="max-width:100%;max-height:520px;border-radius:12px">` : ""}
+      <div style="margin-top:18px;font-size:12px;opacity:.6">${getUser(uid)?.username}</div>
+    </div>
+  `;
+  el.onclick = () => el.remove();
+  document.body.appendChild(el);
+}
+
+// ==================== MESSAGES RENDER ====================
+function renderMessages(c, target = null){
+  if(target){ showChat(target); return; }
   
-  if (el) {
-    el.style.transition = 'all .22s cubic-bezier(.4,0,.2,1)';
-    el.style.transform = 'scale(0.5)';
-    el.style.opacity = '0';
+  let h = `<div class="sh"><b>Messages</b> <span style="font-size:13px;color:var(--dim);font-weight:400">Streaks are everything 🔥</span></div>`;
+  
+  const convos = {};
+  (data.messages||[]).forEach(m=>{
+    const other = m.sender===me.id ? m.receiver : m.sender;
+    if(!convos[other]) convos[other]=[];
+    convos[other].push(m);
+  });
+  
+  const list = Object.keys(convos).map(id=>{
+    const msgs = convos[id];
+    const last = msgs[msgs.length-1];
+    const u = getUser(id);
+    const s = getDMStreak(me.id, id);
+    return {id, u, last, s};
+  }).sort((a,b)=> new Date(b.last.createdAt)-new Date(a.last.createdAt));
+  
+  if(!list.length){
+    h += `<div class="empty"><h3>No chats yet</h3><p>Start a conversation to build your streak!</p></div>`;
+  }else{
+    list.forEach(p=>{
+      const nick = localStorage.getItem("nick_"+me.id+"_"+p.id) || (p.u ? p.u.username : "User");
+      h += `<div class="convo" onclick="go('messages','${p.id}')">
+        ${avatarHTML(p.u, 50)}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-weight:700;font-size:15.5px">${esc(nick)}</span>
+            ${p.s>0 ? `<span class="streak-badge" style="font-size:11px;padding:1px 6px">🔥 ${p.s}</span>` : ""}
+          </div>
+          <div style="font-size:13.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.last.text||"[media]")}</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--dim);text-align:right;white-space:nowrap">${timeAgo(p.last.createdAt)}</div>
+      </div>`;
+    });
+  }
+  c.innerHTML = `<div class="msg-l"><div class="cl" id="convList">${h}</div><div class="cw" id="chatPane">${empty("Your messages","Select a chat.")}</div></div>`;
+}
+
+// ==================== LEADERBOARD ====================
+function renderLeaderboard(c){
+  const users = allUsers().filter(x=>x.status==="approved"&&x.role==="student");
+  const scored = users.map(u=>({u,score:getUserScore(u.id)})).sort((a,b)=>b.score-a.score);
+  
+  let h = `<div class="sh"><b>Campus Ranking</b></div>`;
+  scored.forEach((s,i)=>{
+    h += `<div class="lb-row" onclick="go('profile','${s.u.id}')">
+      <div style="width:32px;font-weight:800;font-size:18px;color:${i<3?'#f59e0b':''}">#${i+1}</div>
+      ${avatarHTML(s.u,38)}
+      <div style="flex:1"><b>${esc(s.u.username)}</b><div style="font-size:12.5px;color:var(--dim)">${esc(s.u.faculty)}</div></div>
+      <div style="font-weight:800;color:var(--accent)">${s.score}</div>
+    </div>`;
+  });
+  c.innerHTML = h;
+}
+
+function getUserScore(uid){
+  const posts = allPosts().filter(p=>p.userId===uid).length;
+  const likes = allPosts().filter(p=>p.userId===uid).reduce((s,p)=>s+(p.likes||[]).length,0);
+  return posts*5 + likes*2;
+}
+
+// ==================== EXPLORE / SEARCH ====================
+function renderExplore(c){
+  let h = `<div class="sh"><b>Explore Students</b></div>`;
+  h += `<div style="padding:12px 14px"><input id="searchInp" class="inp" placeholder="Search students..." oninput="filterExplore(this.value)" style="width:100%"></div>`;
+  
+  const us = allUsers().filter(u=>u.id!==me.id&&u.status==="approved");
+  h += us.map(u=>`
+    <div class="lr" onclick="go('profile','${u.id}')">
+      ${avatarHTML(u,42)}
+      <div style="flex:1"><b>${esc(u.username)}</b><div style="font-size:13px;color:var(--dim)">${esc(u.faculty||'')}</div></div>
+      <button onclick="event.stopImmediatePropagation();followUser('${u.id}',this)" class="btn-f">Follow</button>
+    </div>
+  `).join("");
+  
+  c.innerHTML = h;
+  setTimeout(()=> {
+    const inp = document.getElementById("searchInp");
+    if(inp) inp.focus();
+  }, 80);
+}
+
+function filterExplore(q){
+  q = q.toLowerCase();
+  const rows = document.querySelectorAll("#view .lr");
+  rows.forEach(r => {
+    const txt = r.textContent.toLowerCase();
+    r.style.display = txt.includes(q) ? "" : "none";
+  });
+}
+
+function followUser(id,btn){
+  if(!me.following) me.following=[];
+  if(me.following.includes(id)){
+    me.following = me.following.filter(x=>x!==id);
+    if(btn) btn.textContent = "Follow";
+  } else {
+    me.following.push(id);
+    if(btn) btn.textContent = "Following";
+  }
+  saveLocal();
+  if (USE_SUPA && supabaseClient) {
+    supabaseClient.from('profiles').update({following: me.following}).eq('id', me.id);
+  }
+}
+
+// ==================== PROFILE WITH EDIT + BANNER ====================
+function renderProfile(c, uid){
+  const u = uid==="me" ? me : getUser(uid);
+  if(!u) return;
+  const isMe = u.id === me.id;
+  
+  let bannerHTML = u.banner 
+    ? `<div class="banner"><img src="${u.banner}"></div>` 
+    : `<div class="banner" style="background:linear-gradient(135deg,#667eea,#764ba2)"></div>`;
+  
+  let editBtn = "";
+  if(isMe) editBtn = `<div style="margin-top:8px"><button class="btn-o" onclick="editProfile()" style="padding:8px 20px;font-size:13px">Edit Profile</button></div>`;
+  
+  let h = `
+    <div class="profile-header">
+      ${bannerHTML}
+      <div style="padding:0 16px;margin-top:-32px;position:relative">
+        <div style="display:flex;gap:16px;align-items:flex-end">
+          <div style="border:5px solid var(--card);border-radius:50%;width:92px;height:92px;overflow:hidden">${avatarHTML(u,84)}</div>
+          <div style="flex:1;padding-bottom:6px">
+            <div style="font-size:21px;font-weight:800">${esc(u.name)}</div>
+            <div style="color:var(--dim)">@${esc(u.username)} · ${esc(u.faculty)}</div>
+            ${u.bio ? `<div style="margin-top:4px;font-size:14px">${esc(u.bio)}</div>` : ""}
+            ${editBtn}
+          </div>
+        </div>
+      </div>
+    </div>
     
-    setTimeout(() => {
-      data.posts.splice(idx, 1);
+    <div style="padding:16px 16px 8px">
+      <div style="display:flex;gap:12px">
+        ${!isMe ? `<button class="btn-f" style="flex:1" onclick="followUser('${u.id}',this)">Follow</button>` : ""}
+        <button class="btn-g" style="flex:1" onclick="go('messages','${u.id}')">Message</button>
+      </div>
+    </div>
+    
+    <div style="padding:0 16px 16px">
+      <div style="font-size:13px;font-weight:700;color:var(--dim);margin:8px 0 6px">STREAK</div>
+      <div>${streakHTML(u.id)}</div>
+    </div>
+  `;
+  
+  c.innerHTML = h;
+}
+
+// ==================== EDIT PROFILE (WITH BANNER) ====================
+function editProfile(){
+  const u = me;
+  modal("Edit Profile", `
+    <div style="padding:16px">
+      <div style="position:relative;margin-bottom:12px">
+        ${u.banner ? `<img src="${u.banner}" style="width:100%;height:110px;object-fit:cover;border-radius:12px">` : `<div style="width:100%;height:110px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px"></div>`}
+        <label style="position:absolute;top:8px;right:8px;background:#fff;color:#111;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer">📷 Banner
+          <input type="file" accept="image/*" hidden onchange="uploadBanner(event)">
+        </label>
+      </div>
+      
+      <div style="margin-bottom:10px">
+        ${avatarHTML(u, 72)}
+        <label style="margin-left:12px;background:var(--hover);padding:6px 14px;border-radius:999px;font-size:13px;cursor:pointer">Change avatar
+          <input type="file" accept="image/*" hidden onchange="uploadAvatar(event)">
+        </label>
+      </div>
+      
+      <input class="inp" id="eName" value="${esc(u.name)}" placeholder="Full name">
+      <input class="inp" id="eBio" value="${esc(u.bio||'')}" placeholder="Bio">
+      <input class="inp" id="eFaculty" value="${esc(u.faculty||'')}" placeholder="Faculty">
+      
+      <div style="margin-top:14px">
+        <button class="btn" onclick="saveProfileEdits()" style="width:100%">Save Changes</button>
+      </div>
+    </div>
+  `);
+}
+
+function uploadAvatar(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    me.avatar = ev.target.result;
+    updateUser(me.id, {avatar: ev.target.result});
+    closeM("genModal");
+    toast("Avatar updated!");
+    go("profile", "me");
+  };
+  r.readAsDataURL(f);
+}
+
+function uploadBanner(e){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    me.banner = ev.target.result;
+    updateUser(me.id, {banner: ev.target.result});
+    closeM("genModal");
+    toast("Banner updated!");
+    go("profile", "me");
+  };
+  r.readAsDataURL(f);
+}
+
+function saveProfileEdits(){
+  const name = document.getElementById("eName").value.trim();
+  const bio = document.getElementById("eBio").value.trim();
+  const fac = document.getElementById("eFaculty").value.trim();
+  
+  if(!name) return toast("Name required");
+  
+  me.name = name;
+  me.bio = bio;
+  me.faculty = fac;
+  
+  updateUser(me.id, {name, bio, faculty: fac});
+  closeM("genModal");
+  toast("Profile saved!");
+  go("profile", "me");
+}
+
+function updateUser(id, patch){
+  const idx = data.users.findIndex(x => x.id === id);
+  if(idx === -1) return;
+  Object.assign(data.users[idx], patch);
+  if(me && me.id === id) me = data.users[idx];
+  saveLocal();
+  if(USE_SUPA && supabaseClient){
+    supabaseClient.from("profiles").update(patch).eq("id", id);
+  }
+}
+
+// ==================== AUTH (SUPABASE + LOCAL) ====================
+function showAuth(w){
+  ["loginForm","signupForm","pendingForm","rejectedForm"].forEach(f=>{
+    const el = document.getElementById(f);
+    if(el) el.classList.add("hidden");
+  });
+  const target = document.getElementById(w+"Form");
+  if(target) target.classList.remove("hidden");
+}
+
+async function doLogin(){
+  const e = document.getElementById("lemail").value.trim();
+  const p = document.getElementById("lpw").value;
+  if(!e || !p) return toast("Enter email and password");
+  
+  if(USE_SUPA && supabaseClient){
+    try {
+      const { data: authData, error } = await supabaseClient.auth.signInWithPassword({email:e, password:p});
+      if(error) return toast("Wrong credentials");
+      
+      await syncFromSupabase();
+      const u = data.users.find(x => x.email === e && x.status === "approved");
+      if(!u) return toast("Account not approved yet");
+      me = u;
+      localStorage.setItem("koliya_sess", me.id);
+      enterApp();
+    } catch(err){
+      toast("Login error");
+    }
+  } else {
+    // Local fallback
+    const u = data.users.find(x => x.email === e && x.password === p);
+    if(!u) return toast("Wrong credentials");
+    if(u.status !== "approved") return toast("Account not approved");
+    me = u;
+    localStorage.setItem("koliya_sess", me.id);
+    enterApp();
+  }
+}
+
+async function doSignup(){
+  const name = document.getElementById("sname").value.trim();
+  const un = document.getElementById("suser").value.trim();
+  const card = document.getElementById("scard").value.trim();
+  const fac = document.getElementById("sfac").value.trim();
+  const email = document.getElementById("semail").value.trim();
+  const pw = document.getElementById("spw").value;
+  
+  if(!name || !un || !email || !pw) return toast("Fill all fields");
+  
+  if(USE_SUPA && supabaseClient){
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email, password: pw,
+        options: { data: { full_name: name, username: un, student_card: card, faculty: fac } }
+      });
+      if(error) return toast(error.message);
+      
+      // Create pending profile
+      const newUser = {id: "u_"+Date.now(), name, username:un, email, studentCard:card, faculty:fac, status:"pending", role:"student", followers:[], following:[], blocked:[]};
+      data.users.push(newUser);
       saveLocal();
       
-      const view = document.getElementById('view');
-      if (view) {
-        const currentRoute = document.querySelector('.ni.on')?.dataset?.r || 'feed';
-        if (currentRoute === 'feed') renderFeed(view);
-        else go(currentRoute);
-      }
-      toast("Post deleted 🗑️");
-    }, 210);
+      showAuth("pending");
+      toast("Request sent! Waiting for approval.");
+    } catch(err){
+      toast("Signup failed");
+    }
   } else {
-    data.posts.splice(idx, 1);
+    // Local
+    if(data.users.find(x=>x.email===email)) return toast("Email exists");
+    const newUser = {id:uid("u"), name, username:un, email, password:pw, studentCard:card, faculty:fac, status:"pending", role:"student", followers:[], following:[], blocked:[]};
+    data.users.push(newUser);
     saveLocal();
-    toast("Post deleted 🗑️");
-    const view = document.getElementById('view');
-    if (view) renderFeed(view);
+    showAuth("pending");
+    toast("Request submitted!");
   }
 }
 
-// ==================== YOUR ORIGINAL FUNCTIONS (kept) ====================
-function renderMessages(c,arg){ /* original kept */ }
-function openChat(uid){ /* original kept */ }
-function sendChat(){ /* original kept */ }
-function closeChat(){ /* original kept */ }
-// ... (all your original functions for profile, leaderboard, badges, events, etc. are still here in the file)
-
-function init() {
-  loadLocal();
-  seedData();
-  const sid=localStorage.getItem("koliya_sess");
-  if(sid){ const u=getUser(sid); if(u&&u.status==="approved"){ me=u; enterApp(); return; }}
-  showAuth("login");
-}
 function enterApp(){
   updateStreak(me.id);
   document.getElementById("auth").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
-  document.getElementById("fab").style.display="flex";
-  document.querySelectorAll(".admin-only").forEach(e=>e.classList.toggle("hidden",me.role!=="admin"));
+  document.getElementById("fab").style.display = "flex";
+  document.querySelectorAll(".admin-only").forEach(e=>e.classList.toggle("hidden", me.role !== "admin"));
+  
+  const topAv = document.getElementById("topAvatar");
+  if(topAv) topAv.innerHTML = avatarHTML(me, 30);
+  
   go("feed");
   startPoll();
   updateBadges();
 }
-window.onload=init;
-</script>
 
-<!-- SUPABASE AUTH (WORKING) -->
-<script>
-const SUPABASE_URL = "https://mveaedoxvmmscnkvenqh.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12ZWFlZG94dm1tc2Nua3ZlbnFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODg2OTcsImV4cCI6MjA5ODg2NDY5N30.IWK2kiobIVQ8R_gpK6C-HWzD4n9Ex1cwvSP96nL5j5k";
-
-let supabaseClient = null;
-try {
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log("Supabase connected");
-} catch(e) {
-  console.warn("Supabase not loaded, using local mode");
+function doLogout(){
+  if(USE_SUPA && supabaseClient) supabaseClient.auth.signOut();
+  localStorage.removeItem("koliya_sess");
+  me = null;
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("auth").classList.remove("hidden");
+  document.getElementById("fab").style.display = "none";
+  showAuth("login");
 }
 
-// Make sure showAuth exists (safe version)
-function showAuth(mode) {
-  const forms = {
-    login: document.getElementById('loginForm'),
-    signup: document.getElementById('signupForm'),
-    pending: document.getElementById('pendingForm'),
-    rejected: document.getElementById('rejectedForm')
-  };
-  
-  Object.values(forms).forEach(f => f && f.classList.add('hidden'));
-  
-  if (mode === 'login' || !mode) {
-    forms.login && forms.login.classList.remove('hidden');
-  } else if (mode === 'signup') {
-    forms.signup && forms.signup.classList.remove('hidden');
-  } else if (mode === 'pending') {
-    forms.pending && forms.pending.classList.remove('hidden');
-  } else if (mode === 'rejected') {
-    forms.rejected && forms.rejected.classList.remove('hidden');
-  }
+// ==================== MORE RENDERS ====================
+function renderTrending(c){
+  c.innerHTML = `<div class="sh"><b>Trending</b></div>` + empty("Coming soon", "Hashtags & trending posts will appear here.");
 }
 
-async function doLogin() {
-  const emailEl = document.getElementById("lemail");
-  const pwEl = document.getElementById("lpw");
-  if (!emailEl || !pwEl) return;
+function renderChannels(c){
+  c.innerHTML = `<div class="sh"><b>Channels</b></div>` + empty("Channels", "Join channels to connect with classmates.");
+}
+
+function renderEvents(c){
+  c.innerHTML = `<div class="sh"><b>Events</b></div>` + empty("Events", "Campus events will appear here.");
+}
+
+function renderQA(c){
+  c.innerHTML = `<div class="sh"><b>Q&amp;A</b></div>` + empty("Q&amp;A", "Ask and answer questions.");
+}
+
+function renderHub(c){
+  c.innerHTML = `<div class="sh"><b>Hub</b></div>` + empty("Resources", "Shared files and resources.");
+}
+
+function renderSaved(c){
+  const saved = allPosts().filter(p => (p.saved||[]).includes(me.id));
+  let h = `<div class="sh"><b>Saved</b></div>`;
+  h += saved.length ? saved.map(postCard).join("") : empty("Nothing saved", "Bookmark posts to see them here.");
+  c.innerHTML = h;
+}
+
+function empty(title, sub){
+  return `<div class="empty"><h3>${title}</h3><p>${sub}</p></div>`;
+}
+
+// ==================== SUPABASE SYNC ====================
+async function syncFromSupabase(){
+  if(!USE_SUPA || !supabaseClient) return;
+  try {
+    const [profilesRes, postsRes, msgsRes] = await Promise.all([
+      supabaseClient.from("profiles").select("*"),
+      supabaseClient.from("posts").select("*").order("created_at", {ascending:false}),
+      supabaseClient.from("messages").select("*").order("created_at", {ascending:true})
+    ]);
+    
+    if(profilesRes.data) data.users = profilesRes.data;
+    if(postsRes.data) data.posts = postsRes.data;
+    if(msgsRes.data) data.messages = msgsRes.data.map(m => ({
+      id:m.id, sender:m.sender_id, receiver:m.receiver_id, text:m.text, media:m.media, createdAt:m.created_at
+    }));
+    
+    saveLocal();
+  } catch(e){ console.log("Sync error", e); }
+}
+
+// ==================== COMPOSER + POST ====================
+function openComposer(){
+  compImage = null; compMedia = null;
+  document.getElementById("compText").value = "";
+  document.getElementById("compPrev").innerHTML = "";
   
-  const email = emailEl.value.trim();
-  const pw = pwEl.value;
+  const sel = document.getElementById("compCh");
+  sel.innerHTML = `<option value="">Feed</option>` + (data.channels||[]).map(ch => `<option value="${ch.id}">${ch.icon||''} ${esc(ch.name)}</option>`).join("");
   
-  if (!email || !pw) {
-    alert("Please enter email and password");
-    return;
-  }
+  document.getElementById("compModal").classList.remove("hidden");
+}
 
-  // Try Supabase first
-  if (supabaseClient) {
-    try {
-      const { data: authData, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password: pw
-      });
-      
-      if (error) throw error;
-
-      // Fetch profile
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profile && profile.status === 'approved') {
-        // Success - login
-        me = {
-          id: profile.id,
-          name: profile.full_name || profile.username,
-          username: profile.username,
-          email: profile.email,
-          status: profile.status,
-          role: profile.role || 'student'
-        };
-        localStorage.setItem("koliya_sess", me.id);
-        enterApp();
-        return;
-      } else {
-        showAuth('pending');
-        return;
-      }
-    } catch (err) {
-      console.log("Supabase login failed, trying local fallback", err);
+function handleUpload(e, type){
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    if(type === "image"){
+      compImage = ev.target.result;
+      compMedia = null;
+      document.getElementById("compPrev").innerHTML = `<img src="${compImage}" style="max-height:180px;border-radius:10px">`;
+    } else if(type === "video"){
+      compMedia = {type:"video", data:ev.target.result, name:f.name};
+      compImage = null;
+      document.getElementById("compPrev").innerHTML = `<video src="${ev.target.result}" controls style="max-height:180px;border-radius:10px"></video>`;
+    } else {
+      compMedia = {type:"file", data:ev.target.result, name:f.name};
+      compImage = null;
+      document.getElementById("compPrev").innerHTML = `<div class="fc"><div class="fi">📄</div><div><div class="fn">${esc(f.name)}</div></div></div>`;
     }
-  }
-
-  // Local fallback (demo users)
-  const u = data.users.find(x => 
-    x.email && x.email.toLowerCase() === email.toLowerCase() && 
-    x.password === pw && 
-    x.status === "approved"
-  );
-  
-  if (u) {
-    me = u;
-    localStorage.setItem("koliya_sess", u.id);
-    enterApp();
-  } else {
-    alert("Wrong email or password (or account not approved yet)");
-  }
+  };
+  r.readAsDataURL(f);
 }
 
-async function doSignup() {
-  const nameEl = document.getElementById("sname");
-  const userEl = document.getElementById("suser");
-  const cardEl = document.getElementById("scard");
-  const facEl  = document.getElementById("sfac");
-  const emailEl = document.getElementById("semail");
-  const pwEl = document.getElementById("spw");
-
-  const name = nameEl ? nameEl.value.trim() : "";
-  const username = userEl ? userEl.value.trim() : "";
-  const card = cardEl ? cardEl.value.trim() : "";
-  const faculty = facEl ? facEl.value.trim() : "";
-  const email = emailEl ? emailEl.value.trim() : "";
-  const pw = pwEl ? pwEl.value : "";
-
-  if (!name || !username || !email || !pw) {
-    alert("Please fill Full name, Username, Email and Password");
-    return;
-  }
-
-  // Supabase path
-  if (supabaseClient) {
-    try {
-      const { data: authRes, error: authErr } = await supabaseClient.auth.signUp({
-        email: email,
-        password: pw
-      });
-      
-      if (authErr) throw authErr;
-
-      // Insert pending profile
-      await supabaseClient.from("profiles").insert([{
-        id: authRes.user.id,
-        full_name: name,
-        username: username,
-        student_card: card,
-        faculty: faculty,
-        email: email,
-        status: "pending",
-        role: "student"
-      }]);
-
-      alert("Request submitted! Awaiting admin approval.");
-      showAuth("pending");
-      return;
-    } catch (e) {
-      console.log("Supabase signup error, using local fallback", e);
-    }
-  }
-
-  // Local fallback
-  const newUser = {
-    id: "u_" + Date.now(),
-    name: name,
-    username: username,
-    email: email,
-    password: pw,
-    studentCard: card,
-    faculty: faculty,
-    status: "pending",
-    role: "student",
-    followers: [],
-    following: [],
-    blocked: []
+function submitPost(){
+  const txt = document.getElementById("compText").value.trim();
+  const ch = document.getElementById("compCh").value || null;
+  if(!txt && !compImage && !compMedia) return toast("Write something or add media");
+  
+  const post = {
+    id: uid("p"),
+    userId: me.id,
+    text: txt,
+    image: compImage,
+    media: compMedia,
+    channelId: ch,
+    likes: [],
+    comments: [],
+    saved: [],
+    createdAt: new Date().toISOString()
   };
-
-  data.users = data.users || [];
-  data.users.push(newUser);
+  data.posts.unshift(post);
   saveLocal();
-
-  alert("Request submitted (demo mode - local).");
-  showAuth("pending");
+  
+  closeM("compModal");
+  toast("Posted!");
+  go("feed");
+  
+  if(USE_SUPA && supabaseClient){
+    supabaseClient.from("posts").insert({
+      id: post.id,
+      user_id: me.id,
+      text: txt,
+      image_url: compImage,
+      media: compMedia,
+      channel_id: ch,
+      likes: [],
+      comments: [],
+      created_at: post.createdAt
+    });
+  }
 }
-</script>
 
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+// ==================== POLL COMPOSER ====================
+function openPollComposer(){
+  closeM("compModal");
+  modal("Create Poll", `
+    <div style="padding:16px">
+      <input class="inp" id="pollQ" placeholder="Question?">
+      <div id="pollOpts" style="margin-top:10px">
+        <input class="inp" placeholder="Option 1" style="margin-bottom:6px">
+        <input class="inp" placeholder="Option 2">
+      </div>
+      <button class="btn-g" onclick="addPollOpt()" style="margin:8px 0">+ Add option</button>
+      <button class="btn" onclick="submitPoll()" style="width:100%">Post Poll</button>
+    </div>
+  `);
+}
+
+function addPollOpt(){
+  const c = document.getElementById("pollOpts");
+  const inp = document.createElement("input");
+  inp.className = "inp";
+  inp.placeholder = "Option " + (c.children.length + 1);
+  c.appendChild(inp);
+}
+
+function submitPoll(){
+  const q = document.getElementById("pollQ").value.trim();
+  const opts = [...document.querySelectorAll("#pollOpts input")].map(i=>i.value.trim()).filter(Boolean);
+  if(!q || opts.length < 2) return toast("Need question + 2 options");
+  
+  const poll = {question:q, options:opts, votes:{}};
+  const post = {
+    id:uid("p"), userId:me.id, text:q, image:null, media:null, channelId:null,
+    likes:[], comments:[], saved:[], poll, createdAt:new Date().toISOString()
+  };
+  data.posts.unshift(post);
+  saveLocal();
+  closeM("genModal");
+  toast("Poll posted!");
+  go("feed");
+}
+
+// ==================== OTHER HELPERS ====================
+function openPostDetail(pid){
+  const p = getPost(pid);
+  if(!p) return;
+  modal("Post", `<div style="padding:16px">${esc(p.text || "")}<br><br><button class="btn-g" onclick="closeM('genModal')">Close</button></div>`);
+}
+
+function sharePostToDM(pid){
+  const p = getPost(pid);
+  if(!p) return;
+  modal("Share to DM", `<div style="padding:14px">Choose chat to share...</div>`);
+}
+
+function openAnonPost(){
+  modal("Anonymous Post", `<div style="padding:16px"><textarea class="inp" id="anonT" rows="3"></textarea><button class="btn" onclick="postAnon()">Post Anonymously</button></div>`);
+}
+
+function postAnon(){
+  const t = document.getElementById("anonT").value.trim();
+  if(!t) return;
+  const post = {id:uid("p"), userId:me.id, text:t, anonymous:true, likes:[], comments:[], saved:[], createdAt:new Date().toISOString()};
+  data.posts.unshift(post);
+  saveLocal();
+  closeM("genModal");
+  toast("Posted anonymously!");
+  go("feed");
+}
+
+function dayLabel(ts){
+  const d = new Date(ts);
+  const today = new Date();
+  if(d.toDateString() === today.toDateString()) return "Today";
+  return d.toLocaleDateString();
+}
+
+// ==================== INIT & ROUTER ====================
+let curView = null, curArg = null;
+
+function go(view, arg){
+  curView = view; curArg = arg;
+  const c = document.getElementById("view");
+  c.innerHTML = "";
+  
+  if(view === "feed") renderFeed(c);
+  else if(view === "explore") renderExplore(c);
+  else if(view === "trending") renderTrending(c);
+  else if(view === "messages") renderMessages(c, arg);
+  else if(view === "leaderboard") renderLeaderboard(c);
+  else if(view === "profile") renderProfile(c, arg);
+  else if(view === "saved") renderSaved(c);
+  else if(view === "events") renderEvents(c);
+  else if(view === "qa") renderQA(c);
+  else if(view === "hub") renderHub(c);
+  else if(view === "channels") renderChannels(c);
+  else c.innerHTML = `<div class="sh"><b>${view}</b></div>`;
+  
+  document.querySelectorAll(".ni,.bn").forEach(b => b.classList.toggle("on", b.dataset.r === view));
+}
+
+function updateBadges(){
+  const unread = (data.messages||[]).filter(m => m.receiver === me.id && !localStorage.getItem("rd_"+m.sender)).length;
+  const dot = document.getElementById("dot1");
+  if(dot) {
+    dot.style.display = unread > 0 ? "flex" : "none";
+    dot.textContent = unread > 9 ? "9+" : unread;
+  }
+}
+
+function startPoll(){
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => {
+    if(curView === "messages" && activeChat) {
+      const body = document.getElementById("chatBody");
+      if(body) showChat(activeChat);
+    }
+  }, 7000);
+}
+
+function init(){
+  loadLocal();
+  seedData();
+  
+  // Restore session
+  const sid = localStorage.getItem("koliya_sess");
+  if(sid){
+    const u = getUser(sid);
+    if(u && u.status === "approved"){
+      me = u;
+      document.getElementById("auth").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      document.getElementById("fab").style.display = "flex";
+      go("feed");
+      updateBadges();
+      return;
+    }
+  }
+  
+  showAuth("login");
+  
+  // Demo login hint
+  console.log("%c[Demo] sara@univ.dz / demo123 (approved)", "color:#888");
+}
+
+window.onload = init;
+
+// Global helpers
+window.doLogin = doLogin;
+window.doSignup = doSignup;
+window.showAuth = showAuth;
+window.go = go;
+</script>
 </body>
 </html>
