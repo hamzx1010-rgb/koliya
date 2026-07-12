@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Koliya · Student Network</title>
+<meta name="theme-color" content="#4F46E5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234F46E5'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EK%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+/* ============ DESIGN TOKENS ============ */
+:root{
+  --accent:#4F46E5;--accent-h:#4338CA;--accent-lt:#EEF2FF;--like:#F43F5E;
+  --danger:#EF4444;--ok:#22C55E;--r:16px;--max:600px;
+  --bg:#fff;--card:#fff;--txt:#111;--dim:#888;--border:#eee;
+}
+[data-theme="dark"]{--bg:#080808;--card:#141414;--txt:#f0f0f0;--dim:#666;--border:#252525;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--txt);transition:background .3s,color .3s;overflow-x:hidden;}
+img{max-width:100%;display:block;}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;background:transparent;color:var(--txt);}
+a{color:inherit;text-decoration:none;}
+.hidden{display:none !important;}
+.grad-text{background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;}
+.grad-bg{background:linear-gradient(135deg,#667eea,#764ba2);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);}
+.btn{border:none;border-radius:999px;padding:10px 18px;font-weight:600;font-size:14px;}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-accent:hover{background:var(--accent-h);}
+.btn-ghost{background:var(--accent-lt);color:var(--accent);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--txt);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.dim{color:var(--dim);}
+.mention,.hashtag{color:var(--accent);font-weight:600;cursor:pointer;}
+::-webkit-scrollbar{width:0;height:0;}
+
+/* ============ AUTH ============ */
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;}
+.auth-card{background:var(--card);width:100%;max-width:400px;border-radius:24px;padding:32px 26px;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .35s ease;}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+.auth-logo{font-size:28px;text-align:center;margin-bottom:4px;}
+.auth-tag{text-align:center;color:var(--dim);font-size:13px;margin-bottom:24px;letter-spacing:.5px;}
+.field{margin-bottom:14px;}
+.field label{font-size:12px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1px solid var(--border);
+  border-radius:12px;font-size:14px;background:var(--bg);color:var(--txt);}
+.pw-wrap{position:relative;}
+.pw-wrap .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;}
+.auth-switch{text-align:center;margin-top:16px;font-size:13px;color:var(--dim);}
+.auth-switch b{color:var(--accent);cursor:pointer;}
+.auth-err{background:#FEF2F2;color:var(--danger);padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px;}
+.pending-icon{font-size:56px;text-align:center;margin-bottom:10px;}
+
+/* ============ APP SHELL ============ */
+#app{display:flex;min-height:100vh;}
+.sidebar{width:240px;flex-shrink:0;border-right:1px solid var(--border);padding:20px 14px;
+  position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px;}
+.sidebar .logo{font-size:22px;margin:6px 10px 24px;}
+.navitem{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:14px;font-weight:600;
+  color:var(--txt);font-size:15px;position:relative;}
+.navitem.active{background:var(--accent-lt);color:var(--accent);}
+.navitem .ic{font-size:20px;width:22px;text-align:center;}
+.navitem .dot{position:absolute;top:8px;left:26px;width:8px;height:8px;background:var(--like);border-radius:50%;}
+.sidebar .createBtn{margin-top:10px;}
+.main-col{flex:1;max-width:var(--max);margin:0 auto;width:100%;padding-bottom:70px;min-height:100vh;
+  border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.75);backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:12px 16px;}
+[data-theme="dark"] .topbar{background:rgba(8,8,8,.75);}
+.topbar .logo{font-size:20px;}
+.topbar .icons{display:flex;gap:14px;align-items:center;font-size:20px;}
+.topbar .icons span{position:relative;cursor:pointer;}
+.badge{position:absolute;top:-6px;right:-8px;background:var(--like);color:#fff;font-size:10px;font-weight:700;
+  border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+
+.bottomnav{position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--card);border-top:1px solid var(--border);
+  display:none;align-items:center;justify-content:space-around;z-index:30;}
+.bottomnav .bnitem{display:flex;flex-direction:column;align-items:center;font-size:10px;gap:3px;color:var(--dim);position:relative;}
+.bottomnav .bnitem.active{color:var(--accent);}
+.bottomnav .bnitem .ic{font-size:21px;}
+.fab{position:fixed;right:18px;bottom:76px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);
+  color:#fff;font-size:26px;display:none;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(79,70,229,.4);z-index:30;border:none;}
+
+@media(max-width:1100px){
+  .sidebar{width:68px;}
+  .sidebar .label,.sidebar .logo .txt{display:none;}
+  .sidebar .createBtn span.txt{display:none;}
+}
+@media(max-width:560px){
+  .sidebar{display:none;}
+  .main-col{border:none;}
+  .bottomnav,.fab{display:flex;}
+}
+@media(min-width:561px){ .topbar{display:none;} }
+
+/* ============ STORY ROW ============ */
+.storyrow{display:flex;gap:14px;padding:14px 16px;overflow-x:auto;border-bottom:1px solid var(--border);}
+.storyitem{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;width:64px;cursor:pointer;}
+.story-ring{width:60px;height:60px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,#667eea,#764ba2);}
+.story-ring.seen{background:var(--border);}
+.story-ring img{width:100%;height:100%;border-radius:50%;border:2px solid var(--bg);object-fit:cover;}
+.storyitem .sname{font-size:11px;color:var(--txt);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.story-add{position:relative;}
+.story-add .plus{position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;width:18px;height:18px;
+  border-radius:50%;font-size:13px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);}
+
+/* ============ TABS ============ */
+.tabs{display:flex;border-bottom:1px solid var(--border);}
+.tabbtn{flex:1;text-align:center;padding:12px;font-weight:700;font-size:14px;color:var(--dim);border-bottom:3px solid transparent;}
+.tabbtn.active{color:var(--txt);border-color:var(--accent);}
+
+/* ============ STREAK ============ */
+.streak-banner{display:flex;align-items:center;justify-content:space-between;margin:12px 16px;padding:12px 16px;
+  border-radius:var(--r);background:linear-gradient(135deg,#fff7ed,#fef3c7);}
+[data-theme="dark"] .streak-banner{background:linear-gradient(135deg,#2a1e05,#241a02);}
+.streak-banner.danger{background:linear-gradient(135deg,#fee2e2,#fecaca);}
+.streak-banner .left{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;}
+.streak-banner .time{font-weight:700;font-size:13px;color:var(--dim);}
+
+/* ============ POST CARD ============ */
+.post{border-bottom:1px solid var(--border);padding:14px 16px;}
+.post-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--accent-lt);}
+.avatar.lg{width:64px;height:64px;}
+.avatar.xl{width:90px;height:90px;}
+.post-head .who{flex:1;}
+.post-head .name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px;}
+.post-head .meta{font-size:12px;color:var(--dim);}
+.post-menu{position:relative;}
+.menu-pop{position:absolute;right:0;top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:150px;z-index:15;overflow:hidden;}
+.menu-pop div{padding:11px 14px;font-size:13px;font-weight:600;}
+.menu-pop div:hover{background:var(--accent-lt);}
+.post-text{font-size:14px;line-height:1.5;margin-bottom:8px;white-space:pre-wrap;}
+.post-media{border-radius:14px;overflow:hidden;margin-bottom:8px;position:relative;max-height:520px;}
+.post-media img,.post-media video{width:100%;max-height:520px;object-fit:cover;}
+.heart-pop{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;color:#fff;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));pointer-events:none;}
+.heart-pop.go{animation:heartpop .8s ease forwards;}
+@keyframes heartpop{0%{transform:translate(-50%,-50%) scale(0);opacity:1}30%{transform:translate(-50%,-50%) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.post-actions{display:flex;gap:16px;align-items:center;padding:6px 0;font-size:22px;}
+.post-actions span{display:flex;align-items:center;gap:5px;font-size:14px;color:var(--txt);cursor:pointer;}
+.post-actions .save{margin-left:auto;}
+.post-actions .liked{color:var(--like);}
+.post-actions .saved{color:var(--accent);}
+.post-caption{font-size:13px;margin-top:2px;}
+.post-caption b{margin-right:5px;}
+.view-comments{color:var(--dim);font-size:13px;margin-top:4px;cursor:pointer;}
+.comment-row{display:flex;gap:8px;margin-top:6px;font-size:13px;}
+.comment-input-row{display:flex;gap:8px;align-items:center;margin-top:8px;border-top:1px solid var(--border);padding-top:8px;}
+.comment-input-row input{flex:1;border:none;font-size:13px;}
+.anon-tag{background:#444;color:#fff;font-size:10px;padding:2px 6px;border-radius:6px;}
+.pin-tag{color:var(--accent);font-size:11px;font-weight:700;}
+
+/* ============ POLL ============ */
+.poll-opt{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;position:relative;
+  overflow:hidden;cursor:pointer;font-size:13px;font-weight:600;}
+.poll-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent-lt);z-index:0;}
+.poll-opt span{position:relative;z-index:1;display:flex;justify-content:space-between;}
+
+/* ============ MODALS / SHEETS ============ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;}
+.overlay.center{align-items:center;}
+.sheet{background:var(--card);width:100%;max-width:var(--max);border-radius:22px 22px 0 0;padding:20px;
+  animation:sheetup .3s cubic-bezier(.2,.8,.2,1);max-height:92vh;overflow-y:auto;}
+.modalbox{background:var(--card);width:92%;max-width:420px;border-radius:20px;padding:22px;animation:pop .3s ease;max-height:88vh;overflow-y:auto;}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:40px;height:5px;background:var(--border);border-radius:3px;margin:0 auto 16px;}
+.sheet-title{font-weight:800;font-size:17px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.close-x{font-size:20px;color:var(--dim);cursor:pointer;}
+.create-opt{display:flex;align-items:center;gap:14px;padding:14px 8px;border-bottom:1px solid var(--border);font-weight:600;}
+.create-opt .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;}
+textarea.compose{width:100%;border:none;font-size:15px;min-height:90px;resize:vertical;}
+.compose-preview{position:relative;margin:10px 0;border-radius:12px;overflow:hidden;}
+.compose-preview .rm{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;
+  width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+.compose-bar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:12px;margin-top:10px;}
+.compose-tools{display:flex;gap:14px;font-size:20px;color:var(--accent);}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;font-weight:600;}
+.switch{width:40px;height:22px;background:var(--border);border-radius:20px;position:relative;cursor:pointer;transition:.2s;}
+.switch.on{background:var(--accent);}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s;}
+.switch.on::after{left:20px;}
+
+/* ============ EXPLORE / TRENDING ============ */
+.search-bar{margin:12px 16px;padding:10px 14px;border-radius:12px;background:var(--accent-lt);display:flex;align-items:center;gap:8px;}
+.search-bar input{flex:1;background:transparent;border:none;font-size:14px;}
+.row-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.row-item .txt{flex:1;}
+.row-item .name{font-weight:700;font-size:14px;}
+.row-item .sub{font-size:12px;color:var(--dim);}
+.trend-card{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.trend-rank{font-weight:800;font-size:16px;color:var(--dim);width:22px;}
+.trend-bar{height:5px;background:var(--accent);border-radius:3px;margin-top:5px;}
+.hot{color:var(--like);font-size:11px;font-weight:800;}
+
+/* ============ CHANNELS ============ */
+.channel-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.chicon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;}
+.chip{display:inline-block;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:700;background:var(--accent-lt);color:var(--accent);}
+
+/* ============ MESSAGES ============ */
+.convo{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);position:relative;}
+.online-dot{width:11px;height:11px;background:var(--ok);border-radius:50%;border:2px solid var(--bg);position:absolute;left:38px;top:36px;}
+.chat-wrap{display:flex;flex-direction:column;height:100vh;}
+.chat-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:5;}
+.chat-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px;}
+.day-sep{text-align:center;font-size:11px;color:var(--dim);margin:10px 0;}
+.bubble{max-width:75%;padding:9px 13px;border-radius:16px;font-size:14px;position:relative;line-height:1.4;}
+.bubble.me{align-self:flex-end;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-bottom-right-radius:4px;}
+.bubble.them{align-self:flex-start;background:var(--accent-lt);color:var(--txt);border-bottom-left-radius:4px;}
+[data-theme="dark"] .bubble.them{background:#1e1e1e;}
+.bubble .t{font-size:10px;opacity:.7;margin-top:3px;text-align:right;}
+.typing-ind{align-self:flex-start;font-size:12px;color:var(--dim);padding:4px 12px;}
+.chat-input-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--card);}
+.chat-input-bar input{flex:1;background:var(--accent-lt);border-radius:20px;padding:10px 16px;border:none;font-size:14px;}
+.circ-btn{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;border:none;}
+.voice-msg{display:flex;align-items:center;gap:8px;}
+.rec-pulse{animation:pulse 1s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}70%{box-shadow:0 0 0 10px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+
+/* ============ PROFILE ============ */
+.pf-banner{height:120px;background:linear-gradient(135deg,#667eea,#764ba2);position:relative;}
+.pf-head{padding:0 16px;margin-top:-40px;}
+.pf-avatar-wrap{display:flex;justify-content:space-between;align-items:flex-end;}
+.pf-avatar-wrap .avatar{border:4px solid var(--bg);}
+.pf-name{font-size:19px;font-weight:800;display:flex;align-items:center;gap:5px;margin-top:10px;}
+.verified{color:var(--accent);font-size:15px;}
+.pf-stats{display:flex;justify-content:space-around;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-top:12px;}
+.pf-stats div{text-align:center;}
+.pf-stats b{display:block;font-size:16px;}
+.pf-stats span{font-size:11px;color:var(--dim);}
+.link-pill{display:inline-flex;align-items:center;gap:4px;background:var(--accent-lt);color:var(--accent);
+  padding:5px 10px;border-radius:10px;font-size:12px;margin-right:6px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.grid3 .cell{aspect-ratio:1;overflow:hidden;background:var(--accent-lt);}
+.grid3 .cell img,.grid3 .cell video{width:100%;height:100%;object-fit:cover;}
+
+/* ============ ADMIN ============ */
+.stat-cards{display:flex;gap:10px;padding:14px 16px;}
+.stat-cards .sc{flex:1;text-align:center;padding:16px 8px;}
+.stat-cards .sc b{font-size:22px;display:block;}
+.stat-cards .sc span{font-size:11px;color:var(--dim);}
+
+/* ============ GAMIFICATION ============ */
+.badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;}
+.badge-card{text-align:center;padding:14px 8px;position:relative;}
+.badge-card .bi{font-size:30px;margin-bottom:6px;}
+.badge-card.locked{opacity:.4;}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden;}
+.progress-bar i{display:block;height:100%;background:var(--accent);}
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);}
+.lb-rank{font-weight:800;width:24px;color:var(--dim);}
+.lb-rank.top{color:#f59e0b;}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:200;}
+.confetti span{position:absolute;top:-10px;font-size:18px;animation:fall 2.2s linear forwards;}
+@keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0}}
+
+/* ============ MISC ============ */
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{background:#222;color:#fff;padding:11px 18px;border-radius:30px;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.25);
+  animation:toastin .25s ease;}
+@keyframes toastin{from{transform:translateY(-15px);opacity:0}to{transform:translateY(0);opacity:1}}
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--accent-lt) 50%,var(--border) 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:10px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.empty{text-align:center;padding:50px 20px;color:var(--dim);}
+.empty .e-ic{font-size:44px;margin-bottom:10px;}
+.section-title{font-weight:800;font-size:16px;padding:16px 16px 6px;}
+.story-viewer{position:fixed;inset:0;background:#000;z-index:400;display:flex;flex-direction:column;}
+.sv-bars{display:flex;gap:4px;padding:10px 12px 0;}
+.sv-bars i{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:2px;overflow:hidden;}
+.sv-bars i b{display:block;height:100%;background:#fff;width:0%;}
+.sv-head{display:flex;align-items:center;gap:10px;padding:10px 14px;color:#fff;}
+.sv-media{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.sv-media img,.sv-media video{max-width:100%;max-height:100%;}
+.sv-text-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;text-align:center;padding:30px;}
+.sv-tap{position:absolute;top:0;bottom:0;width:33%;}
+.sv-foot{display:flex;gap:10px;padding:12px 14px;}
+.sv-foot input{flex:1;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:9px 14px;color:#fff;font-size:13px;}
+.ob-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center;}
+.ob-card{background:var(--card);border-radius:20px;padding:24px;max-width:320px;text-align:center;}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- ================= AUTH ================= -->
+<div id="authScreen">
+  <div class="auth-card" id="authCard"></div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="hidden">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="main-col">
+    <div class="topbar" id="topbar"></div>
+    <div id="view-feed" class="view"></div>
+    <div id="view-explore" class="view hidden"></div>
+    <div id="view-trending" class="view hidden"></div>
+    <div id="view-channels" class="view hidden"></div>
+    <div id="view-channel" class="view hidden"></div>
+    <div id="view-messages" class="view hidden"></div>
+    <div id="view-chat" class="view hidden"></div>
+    <div id="view-activity" class="view hidden"></div>
+    <div id="view-profile" class="view hidden"></div>
+    <div id="view-admin" class="view hidden"></div>
+    <div id="view-badges" class="view hidden"></div>
+  </div>
+  <div class="bottomnav" id="bottomnav"></div>
+  <button class="fab" id="fabBtn" onclick="openCreateSheet()">+</button>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="modalRoot"></div>
+
+<script>
+/* =========================================================================
+   KOLIYA — single-file PWA
+   Backend: LocalBackend (default demo) or SupabaseBackend (production)
+   ========================================================================= */
+
+/* ---------------- CONFIG ---------------- */
+const CONFIG = {
+  useSupabase: false,          // ⬅ flip to true for production
+  SUPABASE_URL: "https://YOUR-PROJECT.supabase.co",
+  SUPABASE_ANON_KEY: "YOUR-ANON-KEY"
+};
+
+/* ---------------- UTIL ---------------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+const now = () => Date.now();
+const esc = s => (s || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+function linkify(text) {
+  let t = esc(text || "");
+  t = t.replace(/#(\w+)/g, '<span class="hashtag" data-action="hashtag" data-tag="$1">#$1</span>');
+  t = t.replace(/@(\w+)/g, '<span class="mention" data-action="mention" data-u="$1">@$1</span>');
+  return t;
+}
+function timeAgo(ts) {
+  const s = Math.floor((now() - ts) / 1000);
+  if (s < 60) return "now";
+  if (s < 3600) return Math.floor(s / 60) + "m";
+  if (s < 86400) return Math.floor(s / 3600) + "h";
+  if (s < 604800) return Math.floor(s / 86400) + "d";
+  return new Date(ts).toLocaleDateString();
+}
+function fmtClock(ms) {
+  if (ms < 0) ms = 0;
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000), s = Math.floor((ms % 60000) / 1000);
+  return [h, m, s].map(n => String(n).padStart(2, "0")).join(":");
+}
+function toast(msg, type = "") {
+  const wrap = document.getElementById("toastWrap");
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+function fileToDataURL(file, maxW = 1080, quality = 0.75) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (!file.type.startsWith("image/")) return resolve({ url: e.target.result, type: file.type });
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = h * (maxW / w); w = maxW; }
+        const c = document.createElement("canvas"); c.width = w; c.height = h;
+        c.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve({ url: c.toDataURL("image/jpeg", quality), type: "image/jpeg" });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function confettiBurst() {
+  const el = document.createElement("div"); el.className = "confetti";
+  const emojis = ["🎉","✨","🎊","💜","⭐"];
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement("span");
+    s.textContent = emojis[i % emojis.length];
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.animationDelay = (Math.random() * 0.5) + "s";
+    el.appendChild(s);
+  }
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+function closeAllMenus(){document.querySelectorAll('.menu-pop').forEach(m=>m.remove());}
+
+/* =========================================================================
+   BACKEND — LOCAL (demo, works instantly, realtime via BroadcastChannel)
+   ========================================================================= */
+const LS_KEY = "koliya_db_v1";
+const SESSION_KEY = "koliya_session_v1";
+const bc = ("BroadcastChannel" in window) ? new BroadcastChannel("koliya-rt") : null;
+
+function loadDB() {
+  let raw = localStorage.getItem(LS_KEY);
+  if (!raw) { seedDB(); raw = localStorage.getItem(LS_KEY); }
+  return JSON.parse(raw);
+}
+function saveDB(db, table, kind) {
+  localStorage.setItem(LS_KEY, JSON.stringify(db));
+  if (bc) bc.postMessage({ table, kind, ts: now() });
+}
+function seedDB() {
+  const db = { profiles:{}, posts:{}, channels:{}, messages:{}, stories:{}, notifications:{}, reports:{}, events:{}, qa:{} };
+  const mk = (o) => { const id = uid(); db.profiles[id] = Object.assign({
+    id, following:[], followers:[], blocked:[], close_friends:[], streak_count:0, last_open_date:null,
+    role:"student", status:"approved", bio:"", website:"", github:"", linkedin:"", pronouns:"",
+    avatar_url:"", banner_url:"", created_at: now(), badges:[], onboarded:false, referral: uid().slice(0,6)
+  }, o); return id; };
+
+  const admin = mk({ full_name:"Admin", username:"admin", email:"admin@gmail.com", password:"admin123",
+    faculty:"Administration", role:"admin", avatar_url:"" });
+  const maya = mk({ full_name:"Maya Chen", username:"maya_c", email:"maya@gmail.com", password:"123456",
+    faculty:"Computer Science", pronouns:"she/her" });
+  const sarah = mk({ full_name:"Sarah J.", username:"sarah_j", email:"sarah@gmail.com", password:"123456", faculty:"Design" });
+  const liam = mk({ full_name:"Liam K.", username:"liam_k", email:"liam@gmail.com", password:"123456", faculty:"Business" });
+  const ava = mk({ full_name:"Ava R.", username:"ava_r", email:"ava@gmail.com", password:"123456", faculty:"Medicine" });
+
+  [maya, sarah, liam, ava].forEach(id => { db.profiles[id].following = []; });
+  db.profiles[admin].following = [maya, sarah];
+  db.profiles[maya].followers = [admin]; db.profiles[sarah].followers = [admin];
+
+  const mkPost = (uid_, text, extra={}) => { const id = uid(); db.posts[id] = Object.assign({
+    id, user_id: uid_, text, image_url:"", media:null, channel_id:null, likes:[], comments:[], saved:[],
+    poll:null, anonymous:false, pinned:false, created_at: now() - Math.floor(Math.random()*7200000), edited_at:null
+  }, extra); return id; };
+
+  mkPost(maya, "Sunset vibes with the best! Copenhagen rooftops are magic ✨ #koliya #travel #friends");
+  mkPost(sarah, "Anyone else buried in finals prep? 😩 #exams #csfaculty");
+  mkPost(liam, "Dropped a new project on GitHub, check my profile! #coding #koliya");
+  mkPost(ava, "Coffee + library = productive Sunday ☕📚 #studygram");
+
+  const gid = uid(); db.channels[gid] = { id:gid, name:"General", description:"Campus-wide chat", icon:"💬",
+    color:"#4F46E5", created_by: admin, members:[admin,maya,sarah,liam,ava], admins:[admin], type:"public",
+    post_permission:"everyone", muted:[], created_at: now() };
+  const csid = uid(); db.channels[csid] = { id:csid, name:"CS Faculty", description:"Computer Science students",
+    icon:"💻", color:"#764ba2", created_by: maya, members:[maya,liam], admins:[maya], type:"public",
+    post_permission:"everyone", muted:[], created_at: now() };
+
+  const dm = uid(); db.messages[dm] = { id:dm, sender_id: sarah, receiver_id: admin, text:"Hey! Did you see the updates?",
+    media:null, reactions:{}, seen:true, created_at: now()-500000 };
+  const dm2 = uid(); db.messages[dm2] = { id:dm2, sender_id: admin, receiver_id: sarah, text:"Yeah, reviewing now! Looks awesome.",
+    media:null, reactions:{}, seen:true, created_at: now()-400000 };
+
+  const st = uid(); db.stories[st] = { id:st, user_id: maya, media:"", text:"Good morning campus! ☀️", close_friends:false,
+    viewers:[], created_at: now()-1000000 };
+
+  localStorage.setItem(LS_KEY, JSON.stringify(db));
+}
+
+const LocalBackend = {
+  db() { return loadDB(); },
+  write(mutator, table, kind) {
+    const d = loadDB(); mutator(d); saveDB(d, table, kind); return d;
+  },
+  // ---- auth ----
+  signup(data) {
+    const d = loadDB();
+    const exists = Object.values(d.profiles).find(p => p.email === data.email || p.username === data.username);
+    if (exists) throw new Error("Email or username already exists");
+    const id = uid();
+    d.profiles[id] = {
+      id, full_name:data.full_name, username:data.username, student_card:data.student_card, faculty:data.faculty,
+      email:data.email, password:data.password, avatar_url:"", banner_url:"", bio:"", pronouns:"", website:"",
+      github:"", linkedin:"", status:"pending", role:"student", following:[], followers:[], blocked:[],
+      close_friends:[], last_seen: now(), typing:false, mood:"", streak_count:0, last_open_date:null,
+      badges:[], onboarded:false, referral: uid().slice(0,6), created_at: now()
+    };
+    saveDB(d, "profiles", "insert");
+    return d.profiles[id];
+  },
+  login(emailOrUser, password) {
+    const d = loadDB();
+    const p = Object.values(d.profiles).find(x => (x.email === emailOrUser || x.username === emailOrUser) && x.password === password);
+    if (!p) throw new Error("Invalid credentials");
+    return p;
+  },
+  getProfile(id) { return loadDB().profiles[id]; },
+};
+
+/* =========================================================================
+   BACKEND — SUPABASE (production). Mirrors §3.3 of the spec.
+   Activate by setting CONFIG.useSupabase = true after running the SQL schema.
+   ========================================================================= */
+let sp = null;
+if (CONFIG.useSupabase && window.supabase) {
+  sp = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+}
+function initSupabaseRealtime() {
+  if (!sp) return;
+  sp.channel("koliya-realtime")
+    .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, (payload) => { DB = null; renderCurrentView(); })
+    .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, (payload) => { DB = null; if (state.view==='chat') renderChat(); refreshBadges(); })
+    .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, (payload) => { DB = null; renderCurrentView(); })
+    .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, (payload) => { DB = null; refreshBadges(); })
+    .on("postgres_changes", { event: "*", schema: "public", table: "stories" }, (payload) => { DB = null; if(state.view==='feed') renderFeed(); })
+    .subscribe();
+  sp.channel("online").on("presence", { event: "sync" }, () => {}).subscribe();
+}
+
+/* =========================================================================
+   DATA ACCESS LAYER (used by UI; routes to Local or Supabase)
+   ========================================================================= */
+let DB = null;
+function db() { if (!DB) DB = LocalBackend.db(); return DB; }
+function mutate(fn, table, kind) { DB = LocalBackend.write(fn, table, kind); }
+function values(o) { return Object.values(o || {}); }
+
+/* ---------------- SESSION ---------------- */
+let currentUser = null;
+function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch(e){ return null; } }
+function setSession(userId) { localStorage.setItem(SESSION_KEY, JSON.stringify({ userId })); }
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+/* ---------------- CROSS-TAB REALTIME ---------------- */
+if (bc) {
+  bc.onmessage = (e) => {
+    DB = null; // reload fresh
+    if (!currentUser) return;
+    const { table, kind } = e.data || {};
+    if (table === "messages" && state.view === "chat") renderChat();
+    if (table === "messages") { toast("📩 New message"); }
+    if (table === "posts" && kind === "insert" && state.view === "feed") toast("🆕 New post in your feed");
+    if (table === "notifications") toast("🔔 New activity");
+    renderCurrentView();
+    refreshBadges();
+    checkPendingApproval();
+  };
+}
+window.addEventListener("storage", (e) => { if (e.key === LS_KEY) { DB = null; renderCurrentView(); refreshBadges(); } });
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+const state = {
+  view: "feed", feedTab: "foryou", exploreQuery:"", hashtagFilter:null,
+  activeChatWith:null, activeChannel:null, viewingProfile:null, composerCtx:null,
+  storyViewerQueue:[], storyViewerIdx:0, adminTab:"pending", theme: localStorage.getItem("koliya_theme") || "light",
+  typingTimeout:null, recordState:null
+};
+document.body.setAttribute("data-theme", state.theme);
+
+/* =========================================================================
+   NAV DEFINITION
+   ========================================================================= */
+const NAV = [
+  { id:"feed", label:"Home", ic:"🏠" },
+  { id:"explore", label:"Explore", ic:"🔍" },
+  { id:"channels", label:"Channels", ic:"📺" },
+  { id:"messages", label:"Messages", ic:"💬" },
+  { id:"activity", label:"Activity", ic:"🔔" },
+  { id:"profile", label:"Profile", ic:"👤" },
+];
+
+/* =========================================================================
+   AUTH SCREENS
+   ========================================================================= */
+function renderAuth(mode = "login", errMsg = "") {
+  const el = document.getElementById("authCard");
+  if (mode === "login") {
+    el.innerHTML = `
+      <div class="auth-logo grad-text">Koliya</div>
+      <div class="auth-tag">KOLIYA · Student Network</div>
+      ${errMsg ? `<div class="auth-err">${esc(errMsg)}</div>` : ""}
+      <form id="loginForm">
+        <div class="field"><label>Email or Username</label><input required id="li-email" placeholder="you@gmail.com"></div>
+        <div class="field"><label>Password</label>
+          <div class="pw-wrap"><input required id="li-pass" type="password" placeholder="••••••">
+            <span class="eye" onclick="togglePw('li-pass',this)">👁</span></div>
+        </div>
+        <button class="btn btn-accent" style="width:100%;padding:13px;margin-top:6px;" type="submit">Log In</button>
+      </form>
+      <div class="auth-switch">No account? <b onclick="renderAuth('signup')">Request access</b></div>
+      <div class="auth-switch" style="margin-top:4px;font-size:11px;">Demo: admin@gmail.com / admin123</div>`;
+    document.getElementById("loginForm").onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById("li-email").value.trim();
+      const pass = document.getElementById("li-pass").value;
+      try {
+        const p = LocalBackend.login(email, pass);
+        if (p.status === "banned") return renderAuth("login", "Your account has been banned.");
+        if (p.status === "rejected") return renderAuth("login", "Your access request was rejected.");
+        setSession(p.id);
+        if (p.status === "pending") return renderPending(p.id);
+        enterApp(p.id);
+      } catch (err) { renderAuth("login", err.message); }
+    };
+  } else if (mode === "signup") {
+    el.innerHTML = `
+      <div class="auth-logo grad-text">Koliya</div>
+      <div class="auth-tag">Request access</div>
+      ${errMsg ? `<div class="auth-err">${esc(errMsg)}</div>` : ""}
+      <form id="signupForm">
+        <div class="field"><label>Full name</label><input required id="su-name"></div>
+        <div class="field"><label>Username</label><input required id="su-user" pattern="[a-z0-9._]+" placeholder="a-z 0-9 . _"></div>
+        <div class="field"><label>Faculty</label><input required id="su-fac" placeholder="e.g. Computer Science"></div>
+        <div class="field"><label>Carte Étudiant (ID number)</label><input required id="su-card"></div>
+        <div class="field"><label>Gmail address</label><input required id="su-email" type="email" placeholder="you@gmail.com"></div>
+        <div class="field"><label>Password (min 6)</label>
+          <div class="pw-wrap"><input required id="su-pass" minlength="6" type="password">
+            <span class="eye" onclick="togglePw('su-pass',this)">👁</span></div>
+        </div>
+        <button class="btn btn-accent" style="width:100%;padding:13px;margin-top:6px;" type="submit">Request access</button>
+      </form>
+      <div class="auth-switch">Have an account? <b onclick="renderAuth('login')">Log in</b></div>`;
+    document.getElementById("signupForm").onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById("su-email").value.trim();
+      const username = document.getElementById("su-user").value.trim();
+      if (!/^[a-z0-9._]+$/.test(username)) return renderAuth("signup", "Username: lowercase, numbers, . _ only");
+      if (!/@gmail\.com$/i.test(email)) return renderAuth("signup", "Only Gmail addresses are accepted");
+      try {
+        const p = LocalBackend.signup({
+          full_name: document.getElementById("su-name").value.trim(), username,
+          faculty: document.getElementById("su-fac").value.trim(),
+          student_card: document.getElementById("su-card").value.trim(),
+          email, password: document.getElementById("su-pass").value
+        });
+        setSession(p.id);
+        renderPending(p.id);
+      } catch (err) { renderAuth("signup", err.message); }
+    };
+  }
+}
+function togglePw(id, el) {
+  const i = document.getElementById(id);
+  i.type = i.type === "password" ? "text" : "password"; el.textContent = i.type === "password" ? "👁" : "🙈";
+}
+let pendingWatcher = null;
+function renderPending(userId) {
+  document.getElementById("authCard").innerHTML = `
+    <div class="pending-icon">⏳</div>
+    <div class="auth-logo grad-text" style="font-size:20px;">Awaiting approval</div>
+    <p class="dim" style="text-align:center;font-size:13px;line-height:1.5;">
+      Your Carte Étudiant is being verified by an admin. This screen will update automatically
+      the instant you're approved — no need to refresh.</p>
+    <button class="btn btn-outline" style="width:100%;margin-top:10px;" onclick="logout()">Log out</button>`;
+  clearInterval(pendingWatcher);
+  pendingWatcher = setInterval(() => {
+    const p = LocalBackend.getProfile(userId);
+    if (!p) return;
+    if (p.status === "approved") { clearInterval(pendingWatcher); toast("🎉 You're approved!"); enterApp(userId); }
+    if (p.status === "rejected") { clearInterval(pendingWatcher); renderAuth("login", "Your access request was rejected."); }
+    if (p.status === "banned") { clearInterval(pendingWatcher); renderAuth("login", "Your account was banned."); }
+  }, 800);
+}
+function checkPendingApproval() {
+  const s = getSession();
+  if (s && document.getElementById("app").classList.contains("hidden")) {
+    const p = LocalBackend.getProfile(s.userId);
+    if (p && p.status === "approved") enterApp(s.userId);
+  }
+}
+function logout() { clearSession(); currentUser = null; location.reload(); }
+
+/* =========================================================================
+   APP ENTRY / SHELL
+   ========================================================================= */
+function enterApp(userId) {
+  currentUser = db().profiles[userId];
+  if (!currentUser) return renderAuth("login");
+  bumpStreak();
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  buildShell();
+  switchView("feed");
+  if (!currentUser.onboarded) showOnboarding();
+}
+function buildShell() {
+  document.getElementById("sidebar").innerHTML = `
+    <div class="logo grad-text">K <span class="txt">Koliya</span></div>
+    ${NAV.map(n => navItemHTML(n)).join("")}
+    ${currentUser.role === "admin" ? navItemHTML({id:"admin",label:"Admin",ic:"🛡️"}) : ""}
+    ${navItemHTML({id:"trending",label:"Trending",ic:"📈"})}
+    ${navItemHTML({id:"badges",label:"Badges",ic:"🏆"})}
+    <button class="btn btn-accent createBtn" onclick="openCreateSheet()">➕ <span class="txt">Create</span></button>
+    <div style="margin-top:auto;display:flex;gap:8px;padding:10px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="toggleTheme()">🌓</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="logout()">⏻</button>
+    </div>`;
+  document.getElementById("bottomnav").innerHTML = `
+    ${bnItem("feed","🏠","Home")}${bnItem("explore","🔍","Explore")}${bnItem("channels","📺","Channels")}
+    ${bnItem("messages","💬","Messages")}${bnItem("profile","👤","Profile")}`;
+  renderTopbar();
+  refreshBadges();
+}
+function navItemHTML(n) {
+  return `<div class="navitem" data-nav="${n.id}" onclick="switchView('${n.id}')">
+    <span class="ic">${n.ic}</span><span class="label">${n.label}</span>
+    <span class="dot hidden" id="navdot-${n.id}"></span></div>`;
+}
+function bnItem(id, ic, label) {
+  return `<div class="bnitem" data-nav="${id}" onclick="switchView('${id}')">
+    <span class="ic">${ic}</span>${label}<span class="badge hidden" id="bndot-${id}"></span></div>`;
+}
+function renderTopbar() {
+  document.getElementById("topbar").innerHTML = `
+    <div class="logo grad-text">K Koliya</div>
+    <div class="icons">
+      <span onclick="switchView('activity')">🔔<i class="badge hidden" id="topActBadge"></i></span>
+      <span onclick="switchView('messages')">💬<i class="badge hidden" id="topMsgBadge"></i></span>
+    </div>`;
+}
+function toggleTheme() {
+  state.theme = state.theme === "light" ? "dark" : "light";
+  document.body.setAttribute("data-theme", state.theme);
+  localStorage.setItem("koliya_theme", state.theme);
+}
+function switchView(v, arg) {
+  closeAllMenus();
+  document.querySelectorAll(".view").forEach(x => x.classList.add("hidden"));
+  document.querySelectorAll(".navitem,.bnitem").forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(`[data-nav="${v}"]`).forEach(x => x.classList.add("active"));
+  state.view = v;
+  if (v === "feed") { document.getElementById("view-feed").classList.remove("hidden"); renderFeed(); }
+  if (v === "explore") { document.getElementById("view-explore").classList.remove("hidden"); renderExplore(); }
+  if (v === "trending") { document.getElementById("view-trending").classList.remove("hidden"); renderTrending(); }
+  if (v === "channels") { document.getElementById("view-channels").classList.remove("hidden"); renderChannels(); }
+  if (v === "channel") { document.getElementById("view-channel").classList.remove("hidden"); renderChannelView(arg); }
+  if (v === "messages") { document.getElementById("view-messages").classList.remove("hidden"); renderMessages(); markActivitySeen(); }
+  if (v === "chat") { document.getElementById("view-chat").classList.remove("hidden"); state.activeChatWith = arg; renderChat(); }
+  if (v === "activity") { document.getElementById("view-activity").classList.remove("hidden"); renderActivity(); }
+  if (v === "profile") { document.getElementById("view-profile").classList.remove("hidden"); renderProfile(arg || currentUser.id); }
+  if (v === "admin") { document.getElementById("view-admin").classList.remove("hidden"); renderAdmin(); }
+  if (v === "badges") { document.getElementById("view-badges").classList.remove("hidden"); renderBadgesView(); }
+  window.scrollTo(0,0);
+}
+function renderCurrentView() {
+  currentUser = db().profiles[currentUser.id] || currentUser;
+  switchView(state.view, state.view === "profile" ? state.viewingProfile : state.activeChatWith || state.activeChannel);
+}
+function refreshBadges() {
+  const d = db();
+  const unreadMsgs = values(d.messages).filter(m => m.receiver_id === currentUser.id && !m.seen).length;
+  const unreadNotif = values(d.notifications).filter(n => n.user_id === currentUser.id && !n.read).length;
+  setDot("navdot-messages", unreadMsgs); setDot("bndot-messages", unreadMsgs, true);
+  setDot("navdot-activity", unreadNotif); setDot("bndot-activity", unreadNotif, true);
+  const tb1 = document.getElementById("topMsgBadge"), tb2 = document.getElementById("topActBadge");
+  if (tb1) { tb1.textContent = unreadMsgs; tb1.classList.toggle("hidden", !unreadMsgs); }
+  if (tb2) { tb2.textContent = unreadNotif; tb2.classList.toggle("hidden", !unreadNotif); }
+}
+function setDot(id, n, numeric) {
+  const el = document.getElementById(id); if (!el) return;
+  if (numeric) { el.textContent = n; }
+  el.classList.toggle("hidden", !n);
+}
+
+/* =========================================================================
+   ONBOARDING TOUR
+   ========================================================================= */
+function showOnboarding() {
+  const steps = [
+    { t:"Welcome to Koliya 👋", d:"Your verified student-only network. Let's take a 20s tour." },
+    { t:"Post & Create ➕", d:"Tap the + button anytime to share a Post, Story, Poll or Flash Note." },
+    { t:"Realtime everything ⚡", d:"Messages, likes and notifications appear instantly — no refresh needed." },
+  ];
+  let i = 0;
+  const root = document.getElementById("modalRoot");
+  function draw() {
+    root.innerHTML = `<div class="ob-overlay"><div class="ob-card">
+      <div style="font-size:34px;margin-bottom:8px;">✨</div>
+      <h3 style="margin:0 0 8px;">${steps[i].t}</h3>
+      <p class="dim" style="font-size:13px;">${steps[i].d}</p>
+      <button class="btn btn-accent" style="width:100%;margin-top:14px;" onclick="obNext()">${i === steps.length-1 ? "Get started" : "Next"}</button>
+      <div class="dim" style="margin-top:8px;font-size:12px;cursor:pointer;" onclick="obSkip()">Skip</div>
+    </div></div>`;
+  }
+  window.obNext = () => { i++; if (i >= steps.length) return obSkip(); draw(); };
+  window.obSkip = () => { root.innerHTML = ""; mutate(d => d.profiles[currentUser.id].onboarded = true, "profiles"); };
+  draw();
+}
+
+/* =========================================================================
+   STREAK
+   ========================================================================= */
+function dayStr(ts){ return new Date(ts).toDateString(); }
+function bumpStreak() {
+  mutate(d => {
+    const p = d.profiles[currentUser.id];
+    const today = dayStr(now());
+    if (p.last_open_date === today) return;
+    const yesterday = dayStr(now() - 86400000);
+    p.streak_count = (p.last_open_date === yesterday) ? (p.streak_count || 0) + 1 : 1;
+    p.last_open_date = today;
+    p.streak_started_at = p.streak_started_at || now();
+  }, "profiles");
+  currentUser = db().profiles[currentUser.id];
+}
+function streakResetsAt() {
+  const d = new Date(); d.setHours(24,0,0,0); return d.getTime();
+}
+
+/* =========================================================================
+   FEED
+   ========================================================================= */
+let streakTimerInt = null;
+function renderFeed() {
+  const d = db();
+  const container = document.getElementById("view-feed");
+  const followingIds = new Set(currentUser.following || []);
+  let posts = values(d.posts).filter(p => !p.channel_id);
+  if (state.feedTab === "following") posts = posts.filter(p => followingIds.has(p.user_id) || p.user_id === currentUser.id);
+  if (state.hashtagFilter) posts = posts.filter(p => (p.text||"").toLowerCase().includes("#"+state.hashtagFilter.toLowerCase()));
+  posts.sort((a,b) => (b.pinned - a.pinned) || (b.created_at - a.created_at));
+
+  const stories = values(d.stories).filter(s => now() - s.created_at < 86400000);
+  const storyByUser = {};
+  stories.forEach(s => { (storyByUser[s.user_id] ||= []).push(s); });
+  const storyUsers = Object.keys(storyByUser).filter(uidk => uidk !== currentUser.id);
+
+  container.innerHTML = `
+    <div class="storyrow">
+      <div class="storyitem story-add" onclick="openStoryUpload()">
+        <div class="story-ring seen"><img src="${currentUser.avatar_url || avatarFallback(currentUser)}"></div>
+        <span class="plus">+</span><span class="sname">Your Story</span>
+      </div>
+      ${storyUsers.map(uidk => { const u = d.profiles[uidk]; if(!u) return ""; return `
+        <div class="storyitem" onclick="viewStories('${uidk}')">
+          <div class="story-ring"><img src="${u.avatar_url || avatarFallback(u)}"></div>
+          <span class="sname">${esc(u.username)}</span>
+        </div>`; }).join("")}
+    </div>
+    <div class="tabs">
+      <div class="tabbtn ${state.feedTab==='foryou'?'active':''}" onclick="setFeedTab('foryou')">For You</div>
+      <div class="tabbtn ${state.feedTab==='following'?'active':''}" onclick="setFeedTab('following')">Following</div>
+    </div>
+    ${renderStreakBanner()}
+    ${state.hashtagFilter ? `<div style="padding:8px 16px;" class="dim">Filtering by <b class="mention">#${esc(state.hashtagFilter)}</b> <span style="color:var(--accent);cursor:pointer;" onclick="state.hashtagFilter=null;renderFeed();">✕ clear</span></div>` : ""}
+    <div id="postsList">
+      ${posts.length ? posts.map(postCardHTML).join("") : emptyState("📭","No posts yet","Follow people or create your first post!")}
+    </div>`;
+  clearInterval(streakTimerInt);
+  streakTimerInt = setInterval(updateStreakClock, 1000);
+}
+function avatarFallback(u) {
+  const letter = (u.full_name || u.username || "?")[0].toUpperCase();
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" fill="#4F46E5"/><text x="40" y="52" font-size="34" fill="white" text-anchor="middle" font-family="Arial">${letter}</text></svg>`)}`;
+}
+function setFeedTab(t){ state.feedTab = t; renderFeed(); }
+function renderStreakBanner() {
+  const remain = streakResetsAt() - now();
+  const danger = remain < 3*3600000;
+  return `<div class="streak-banner ${danger?'danger':''}" id="streakBanner">
+    <div class="left">🔥 Daily Streak: ${currentUser.streak_count || 0} Days!</div>
+    <div class="time" id="streakClock">${fmtClock(remain)}</div>
+  </div>`;
+}
+function updateStreakClock() {
+  const el = document.getElementById("streakClock"); if (!el) return clearInterval(streakTimerInt);
+  const remain = streakResetsAt() - now();
+  el.textContent = fmtClock(remain);
+  const banner = document.getElementById("streakBanner");
+  if (banner) banner.classList.toggle("danger", remain < 3*3600000);
+}
+const MILESTONES = [3,7,30,100];
+function postCardHTML(p) {
+  const d = db();
+  const author = p.anonymous ? { full_name:"Anonymous", username:"anonymous", avatar_url:"" } : (d.profiles[p.user_id] || {});
+  const isOwner = p.user_id === currentUser.id;
+  const liked = (p.likes||[]).includes(currentUser.id);
+  const saved = (p.saved||[]).includes(currentUser.id);
+  const channel = p.channel_id ? d.channels[p.channel_id] : null;
+  return `<div class="post" data-post="${p.id}">
+    <div class="post-head">
+      <img class="avatar" src="${author.avatar_url || avatarFallback(author)}" onclick="${p.anonymous?'':`switchView('profile','${p.user_id}')`}">
+      <div class="who">
+        <div class="name">${esc(author.full_name||"Anonymous")} ${author.role==='admin'?'<span class="verified">✔️</span>':''} ${p.pinned?'<span class="pin-tag">📌 Pinned</span>':''} ${p.anonymous?'<span class="anon-tag">anon</span>':''}</div>
+        <div class="meta">@${esc(author.username||"anon")} · ${timeAgo(p.created_at)} ${channel?`· in ${esc(channel.name)}`:""} ${p.edited_at?"· edited":""}</div>
+      </div>
+      <div class="post-menu">
+        <span onclick="togglePostMenu(event,'${p.id}')" style="font-size:18px;cursor:pointer;">⋯</span>
+      </div>
+    </div>
+    ${p.text ? `<div class="post-text">${linkify(p.text)}</div>` : ""}
+    ${p.poll ? pollHTML(p) : ""}
+    ${p.media ? mediaHTML(p) : ""}
+    <div class="post-actions">
+      <span onclick="likePost('${p.id}')" class="${liked?'liked':''}">${liked?'❤️':'🤍'} ${(p.likes||[]).length}</span>
+      <span onclick="openComments('${p.id}')">💬 ${(p.comments||[]).length}</span>
+      <span onclick="sharePost('${p.id}')">↗️ share</span>
+      <span class="save ${saved?'saved':''}" onclick="toggleSave('${p.id}')">${saved?'🔖':'📑'}</span>
+    </div>
+    <div id="comments-${p.id}" class="hidden"></div>
+  </div>`;
+}
+function mediaHTML(p) {
+  const isVid = p.media.type && p.media.type.startsWith("video");
+  return `<div class="post-media" ondblclick="doubleLike(this,'${p.id}')">
+    ${isVid ? `<video src="${p.media.url}" controls playsinline></video>` : `<img src="${p.media.url}" loading="lazy">`}
+    <div class="heart-pop">❤️</div></div>`;
+}
+function pollHTML(p) {
+  const total = p.poll.options.reduce((s,o)=>s+o.votes.length,0) || 1;
+  const votedIdx = p.poll.options.findIndex(o => o.votes.includes(currentUser.id));
+  return `<div class="poll-box" style="margin-bottom:8px;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:8px;">📊 ${esc(p.poll.question)}</div>
+    ${p.poll.options.map((o,i)=>{ const pct = Math.round(o.votes.length/total*100);
+      return `<div class="poll-opt" onclick="votePoll('${p.id}',${i})">
+        <div class="poll-fill" style="width:${votedIdx>-1?pct:0}%;"></div>
+        <span>${esc(o.text)} ${votedIdx>-1?`<b>${pct}%</b>`:""}</span></div>`; }).join("")}
+    <div class="dim" style="font-size:11px;">${total===1&&votedIdx===-1?0:total} votes</div>
+  </div>`;
+}
+function doubleLike(el, postId) {
+  const heart = el.querySelector(".heart-pop");
+  heart.classList.remove("go"); void heart.offsetWidth; heart.classList.add("go");
+  const p = db().posts[postId];
+  if (!(p.likes||[]).includes(currentUser.id)) likePost(postId);
+}
+function togglePostMenu(e, postId) {
+  e.stopPropagation(); closeAllMenus();
+  const p = db().posts[postId]; const isOwner = p.user_id === currentUser.id;
+  const menu = document.createElement("div"); menu.className = "menu-pop";
+  menu.innerHTML = isOwner ? `
+    <div onclick="pinPost('${postId}')">${p.pinned?'📌 Unpin':'📌 Pin to top'}</div>
+    <div onclick="editPostPrompt('${postId}')">✏️ Edit</div>
+    <div onclick="deletePost('${postId}')" style="color:var(--danger)">🗑️ Delete</div>` :
+    `<div onclick="reportContent('post','${postId}')">🚩 Report</div>`;
+  e.target.closest(".post-menu").appendChild(menu);
+  setTimeout(()=>document.addEventListener("click", closeAllMenus, {once:true}));
+}
+function likePost(id) {
+  mutate(d => {
+    const p = d.posts[id]; const i = p.likes.indexOf(currentUser.id);
+    if (i>-1) p.likes.splice(i,1); else {
+      p.likes.push(currentUser.id);
+      if (p.user_id !== currentUser.id) notify(p.user_id, "like", { postId:id, from: currentUser.id });
+    }
+  }, "posts");
+  renderCurrentView();
+}
+function votePoll(postId, idx) {
+  mutate(d => {
+    const poll = d.posts[postId].poll;
+    poll.options.forEach(o => { const i = o.votes.indexOf(currentUser.id); if (i>-1) o.votes.splice(i,1); });
+    poll.options[idx].votes.push(currentUser.id);
+  }, "posts");
+  renderCurrentView();
+}
+function toggleSave(id) {
+  mutate(d => { const p = d.posts[id]; const i = p.saved.indexOf(currentUser.id);
+    if (i>-1) p.saved.splice(i,1); else p.saved.push(currentUser.id); }, "posts");
+  renderCurrentView(); toast("Saved");
+}
+function pinPost(id){ mutate(d=>{ d.posts[id].pinned = !d.posts[id].pinned; },"posts"); renderCurrentView(); closeAllMenus(); }
+function deletePost(id){ if(!confirm("Delete this post?"))return; mutate(d=>{ delete d.posts[id]; },"posts"); renderCurrentView(); closeAllMenus(); }
+function editPostPrompt(id){ const p = db().posts[id]; const t = prompt("Edit post:", p.text); if (t===null) return;
+  mutate(d=>{ d.posts[id].text = t; d.posts[id].edited_at = now(); },"posts"); renderCurrentView(); closeAllMenus(); }
+function sharePost(id){ toast("Shared to your story / DM (demo)"); }
+function reportContent(kind, id) {
+  closeAllMenus();
+  const reason = prompt("Report reason (spam, abuse, other):", "spam"); if (!reason) return;
+  mutate(d => { const rid = uid(); d.reports[rid] = { id:rid, kind, target_id:id, reason, reporter: currentUser.id, created_at: now(), status:"open" }; }, "reports");
+  toast("Report submitted");
+}
+function openComments(postId) {
+  const box = document.getElementById(`comments-${postId}`);
+  box.classList.toggle("hidden");
+  if (box.classList.contains("hidden")) return;
+  const p = db().posts[postId];
+  box.innerHTML = `
+    ${(p.comments||[]).map(c => { const u = db().profiles[c.user_id]||{}; return `
+      <div class="comment-row"><b>${esc(u.username||"user")}</b> ${linkify(c.text)}</div>`; }).join("") || `<div class="dim" style="font-size:12px;">No comments yet.</div>`}
+    <div class="comment-input-row">
+      <img class="avatar" style="width:26px;height:26px;" src="${currentUser.avatar_url||avatarFallback(currentUser)}">
+      <input placeholder="Add a comment..." onkeydown="if(event.key==='Enter')submitComment(event,'${postId}')">
+    </div>`;
+}
+function submitComment(e, postId) {
+  const val = e.target.value.trim(); if (!val) return;
+  mutate(d => {
+    const p = d.posts[postId];
+    p.comments.push({ id: uid(), user_id: currentUser.id, text: val, created_at: now() });
+    if (p.user_id !== currentUser.id) notify(p.user_id, "comment", { postId, from: currentUser.id });
+  }, "posts");
+  e.target.value = ""; renderCurrentView();
+  setTimeout(()=>{ const box=document.getElementById(`comments-${postId}`); if(box){box.classList.remove("hidden"); openComments(postId); openComments(postId);} });
+}
+function notify(userId, type, payload) {
+  mutate(d => { const id = uid(); d.notifications[id] = { id, user_id:userId, type, payload, from: currentUser.id, read:false, created_at: now() }; }, "notifications");
+}
+function emptyState(ic, title, sub) {
+  return `<div class="empty"><div class="e-ic">${ic}</div><div style="font-weight:700;color:var(--txt);">${title}</div><div style="font-size:13px;">${sub}</div></div>`;
+}
+
+/* =========================================================================
+   COMPOSER / CREATE SHEET
+   ========================================================================= */
+function openCreateSheet() {
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay" onclick="if(event.target===this)closeModal()">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Create <span class="close-x" onclick="closeModal()">✕</span></div>
+        <div class="create-opt" onclick="closeModal();openComposer({type:'post'})"><div class="ic" style="background:#4F46E5;">📝</div>Post</div>
+        <div class="create-opt" onclick="closeModal();openStoryUpload()"><div class="ic" style="background:#EC4899;">⭕</div>Story</div>
+        <div class="create-opt" onclick="closeModal();openComposer({type:'flash'})"><div class="ic" style="background:#F59E0B;">⚡</div>Flash Note (24h)</div>
+        <div class="create-opt" onclick="closeModal();openPollComposer()"><div class="ic" style="background:#22C55E;">📊</div>Poll</div>
+        <div class="create-opt" onclick="closeModal();openComposer({type:'post', anon:true})" style="border:none;"><div class="ic" style="background:#6B7280;">🕶️</div>Anonymous Post</div>
+      </div>
+    </div>`;
+}
+function closeModal(){ document.getElementById("modalRoot").innerHTML = ""; }
+let composerFile = null;
+function openComposer(ctx) {
+  composerFile = null;
+  const d = db();
+  const channels = values(d.channels).filter(c => (c.members||[]).includes(currentUser.id));
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay center" onclick="if(event.target===this)closeModal()">
+      <div class="modalbox">
+        <div class="sheet-title">${ctx.type==='flash'?'Flash Note':'New Post'} <span class="close-x" onclick="closeModal()">✕</span></div>
+        <textarea id="composeText" class="compose" placeholder="What's happening on campus?"></textarea>
+        <div id="composePreview"></div>
+        <select id="composeChannel" class="field" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin-top:8px;">
+          <option value="">No channel (public feed)</option>
+          ${channels.map(c=>`<option value="${c.id}">${esc(c.icon)} ${esc(c.name)}</option>`).join("")}
+        </select>
+        <div class="toggle-row">Post anonymously
+          <div class="switch ${ctx.anon?'on':''}" id="anonSwitch" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="compose-bar">
+          <div class="compose-tools">
+            <label>🖼️<input type="file" id="composeFile" accept="image/*,video/*" style="display:none;"></label>
+          </div>
+          <button class="btn btn-accent" onclick="submitPost('${ctx.type}')">${ctx.type==='flash'?'Post (24h)':'Post'}</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("composeFile").onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const res = await fileToDataURL(f);
+    composerFile = res;
+    document.getElementById("composePreview").innerHTML = `
+      <div class="compose-preview">${res.type.startsWith("video")?`<video src="${res.url}" controls style="width:100%"></video>`:`<img src="${res.url}">`}
+      <div class="rm" onclick="composerFile=null;document.getElementById('composePreview').innerHTML=''">✕</div></div>`;
+  };
+}
+function submitPost(type) {
+  const text = document.getElementById("composeText").value.trim();
+  if (!text && !composerFile) return toast("Write something or add media");
+  const channel_id = document.getElementById("composeChannel").value || null;
+  const anonymous = document.getElementById("anonSwitch").classList.contains("on");
+  mutate(d => {
+    const id = uid();
+    d.posts[id] = { id, user_id: currentUser.id, text, media: composerFile, channel_id, likes:[], comments:[],
+      saved:[], poll:null, anonymous, pinned:false, created_at: now(), edited_at:null,
+      expires_at: type === "flash" ? now()+86400000 : null };
+  }, "posts", "insert");
+  closeModal(); toast("Posted!"); switchView(channel_id ? "channel":"feed", channel_id);
+}
+function openPollComposer() {
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay center" onclick="if(event.target===this)closeModal()">
+      <div class="modalbox">
+        <div class="sheet-title">New Poll <span class="close-x" onclick="closeModal()">✕</span></div>
+        <div class="field"><label>Question</label><input id="pollQ" placeholder="What do you want to ask?"></div>
+        <div class="field"><label>Option 1</label><input id="pollO0"></div>
+        <div class="field"><label>Option 2</label><input id="pollO1"></div>
+        <div class="field"><label>Option 3 (optional)</label><input id="pollO2"></div>
+        <div class="field"><label>Option 4 (optional)</label><input id="pollO3"></div>
+        <button class="btn btn-accent" style="width:100%;" onclick="submitPoll()">Create Poll</button>
+      </div>
+    </div>`;
+}
+function submitPoll() {
+  const q = document.getElementById("pollQ").value.trim();
+  const opts = [0,1,2,3].map(i => document.getElementById("pollO"+i).value.trim()).filter(Boolean);
+  if (!q || opts.length < 2) return toast("Question + at least 2 options required");
+  mutate(d => { const id = uid();
+    d.posts[id] = { id, user_id: currentUser.id, text:"", media:null, channel_id:null, likes:[], comments:[],
+      saved:[], anonymous:false, pinned:false, created_at: now(), edited_at:null,
+      poll: { question:q, options: opts.map(t => ({ text:t, votes:[] })) } };
+  }, "posts", "insert");
+  closeModal(); toast("Poll created!"); switchView("feed");
+}
+
+/* =========================================================================
+   STORIES
+   ========================================================================= */
+function openStoryUpload() {
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay center" onclick="if(event.target===this)closeModal()">
+      <div class="modalbox">
+        <div class="sheet-title">Add to Story <span class="close-x" onclick="closeModal()">✕</span></div>
+        <input type="file" id="storyFile" accept="image/*" style="margin-bottom:10px;">
+        <textarea id="storyText" class="compose" placeholder="Or write a text story..." style="border:1px solid var(--border);border-radius:10px;padding:10px;"></textarea>
+        <div class="toggle-row">Close friends only <div class="switch" id="cfSwitch" onclick="this.classList.toggle('on')"></div></div>
+        <button class="btn btn-accent" style="width:100%;margin-top:8px;" onclick="submitStory()">Share Story</button>
+      </div>
+    </div>`;
+}
+async function submitStory() {
+  const f = document.getElementById("storyFile").files[0];
+  const text = document.getElementById("storyText").value.trim();
+  const cf = document.getElementById("cfSwitch").classList.contains("on");
+  let media = "";
+  if (f) media = (await fileToDataURL(f)).url;
+  if (!media && !text) return toast("Add an image or text");
+  mutate(d => { const id = uid(); d.stories[id] = { id, user_id: currentUser.id, media, text, close_friends: cf, viewers:[], created_at: now() }; }, "stories", "insert");
+  closeModal(); toast("Story shared!"); renderCurrentView();
+}
+function viewStories(userId) {
+  const stories = values(db().stories).filter(s => s.user_id === userId && now()-s.created_at < 86400000);
+  if (!stories.length) return;
+  state.storyViewerQueue = stories; state.storyViewerIdx = 0;
+  mutate(d => { stories.forEach(s => { if(!d.stories[s.id].viewers.includes(currentUser.id)) d.stories[s.id].viewers.push(currentUser.id); }); }, "stories");
+  drawStoryViewer();
+}
+let storyTimer = null;
+function drawStoryViewer() {
+  clearInterval(storyTimer);
+  const q = state.storyViewerQueue; const s = q[state.storyViewerIdx];
+  const u = db().profiles[s.user_id] || {};
+  const isOwner = s.user_id === currentUser.id;
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="story-viewer">
+      <div class="sv-bars">${q.map((_,i)=>`<i><b id="svbar-${i}" style="width:${i<state.storyViewerIdx?'100':'0'}%"></b></i>`).join("")}</div>
+      <div class="sv-head">
+        <img class="avatar" style="width:32px;height:32px;" src="${u.avatar_url||avatarFallback(u)}">
+        <div style="flex:1;"><b>${esc(u.username)}</b> <span class="dim" style="font-size:12px;">${timeAgo(s.created_at)}</span></div>
+        <span onclick="closeModal()" style="font-size:22px;cursor:pointer;">✕</span>
+      </div>
+      <div class="sv-media">
+        <div class="sv-tap" style="left:0;" onclick="storyPrev()"></div>
+        <div class="sv-tap" style="right:0;" onclick="storyNext()"></div>
+        ${s.media ? `<img src="${s.media}">` : `<div class="sv-text-bg grad-bg">${esc(s.text)}</div>`}
+      </div>
+      ${isOwner ? `<div class="dim" style="color:#fff;padding:6px 16px;font-size:12px;">👁 ${s.viewers.length} views</div>` : ""}
+      <div class="sv-foot">
+        <input placeholder="Reply to ${esc(u.username)}..." onkeydown="if(event.key==='Enter')storyReply(event,'${s.user_id}')">
+        <button class="circ-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>`;
+  let pct = 0;
+  storyTimer = setInterval(() => {
+    pct += 2;
+    const bar = document.getElementById(`svbar-${state.storyViewerIdx}`); if (bar) bar.style.width = pct+"%";
+    if (pct >= 100) storyNext();
+  }, 100);
+}
+function storyNext() { if (state.storyViewerIdx < state.storyViewerQueue.length-1) { state.storyViewerIdx++; drawStoryViewer(); } else closeModal(); clearInterval(storyTimer); }
+function storyPrev() { if (state.storyViewerIdx > 0) { state.storyViewerIdx--; drawStoryViewer(); } clearInterval(storyTimer); }
+function storyReply(e, toUser) {
+  const val = e.target.value.trim(); if (!val) return;
+  sendDirectMessage(toUser, val); e.target.value = ""; toast("Reply sent!");
+}
+
+/* =========================================================================
+   EXPLORE / SEARCH / TRENDING
+   ========================================================================= */
+function renderExplore() {
+  const d = db();
+  const q = state.exploreQuery.toLowerCase();
+  const users = values(d.profiles).filter(p => p.id !== currentUser.id && p.status === "approved" &&
+    (!q || p.full_name.toLowerCase().includes(q) || p.username.toLowerCase().includes(q) || (p.faculty||"").toLowerCase().includes(q)));
+  const channels = values(d.channels).filter(c => c.type==="public" && (!q || c.name.toLowerCase().includes(q)));
+  document.getElementById("view-explore").innerHTML = `
+    <div class="search-bar"><span>🔍</span><input id="exploreInput" placeholder="Search students, faculties, channels..." value="${esc(state.exploreQuery)}"></div>
+    <div class="section-title">Channels</div>
+    ${channels.slice(0,5).map(c => `<div class="row-item" onclick="switchView('channel','${c.id}')">
+      <div class="chicon" style="background:${c.color}">${c.icon}</div>
+      <div class="txt"><div class="name">${esc(c.name)}</div><div class="sub">${(c.members||[]).length} members</div></div>
+    </div>`).join("") || `<div class="dim" style="padding:0 16px 10px;">No channels found</div>`}
+    <div class="section-title">Students</div>
+    ${users.map(u => `<div class="row-item" onclick="switchView('profile','${u.id}')">
+      <img class="avatar" src="${u.avatar_url||avatarFallback(u)}">
+      <div class="txt"><div class="name">${esc(u.full_name)}</div><div class="sub">@${esc(u.username)} · ${esc(u.faculty||"")}</div></div>
+      <button class="btn btn-ghost" onclick="event.stopPropagation();followUser('${u.id}')">${(currentUser.following||[]).includes(u.id)?'Following':'Follow'}</button>
+    </div>`).join("") || emptyState("🔍","No students found","Try another search term")}`;
+  document.getElementById("exploreInput").oninput = (e) => { state.exploreQuery = e.target.value; renderExplore();
+    document.getElementById("exploreInput").focus(); document.getElementById("exploreInput").setSelectionRange(999,999); };
+}
+function renderTrending() {
+  const d = db();
+  const counts = {};
+  values(d.posts).forEach(p => { (p.text||"").match(/#(\w+)/g)?.forEach(h => { const t = h.slice(1).toLowerCase(); counts[t]=(counts[t]||0)+1; }); });
+  const list = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max = list[0]?.[1] || 1;
+  document.getElementById("view-trending").innerHTML = `
+    <div class="section-title">🔥 Trending Hashtags</div>
+    ${list.map(([tag,count],i) => `<div class="trend-card" onclick="filterHashtag('${tag}')">
+      <div class="trend-rank">${i+1}</div>
+      <div style="flex:1;"><div class="name">#${esc(tag)} ${i<3?'<span class="hot">🔥 Hot</span>':''}</div>
+      <div class="dim" style="font-size:12px;">${count} posts</div>
+      <div class="trend-bar" style="width:${count/max*100}%"></div></div>
+    </div>`).join("") || emptyState("📈","No trends yet","Hashtags will appear as students post")}`;
+}
+function filterHashtag(tag) { state.hashtagFilter = tag; switchView("feed"); }
+
+/* =========================================================================
+   CHANNELS
+   ========================================================================= */
+function renderChannels() {
+  const d = db();
+  const mine = values(d.channels).filter(c => (c.members||[]).includes(currentUser.id));
+  const others = values(d.channels).filter(c => c.type==="public" && !(c.members||[]).includes(currentUser.id));
+  document.getElementById("view-channels").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
+      <div style="font-weight:800;font-size:18px;">Channels</div>
+      <button class="btn btn-accent" onclick="openCreateChannel()">+ New</button>
+    </div>
+    <div class="section-title">Your channels</div>
+    ${mine.map(channelRow).join("") || emptyState("📺","No channels yet","Create or join a channel")}
+    <div class="section-title">Discover</div>
+    ${others.map(channelRow).join("") || `<div class="dim" style="padding:0 16px 10px;">Nothing to discover</div>`}`;
+}
+function channelRow(c) {
+  const joined = (c.members||[]).includes(currentUser.id);
+  return `<div class="channel-card">
+    <div class="chicon" style="background:${c.color}" onclick="switchView('channel','${c.id}')">${c.icon}</div>
+    <div class="txt" onclick="switchView('channel','${c.id}')"><div class="name">${esc(c.name)} <span class="chip">${c.type}</span></div>
+      <div class="sub">${(c.members||[]).length} members · ${esc(c.description||"")}</div></div>
+    <button class="btn ${joined?'btn-outline':'btn-accent'}" onclick="joined?leaveChannel('${c.id}'):joinChannel('${c.id}')">${joined?'Leave':'Join'}</button>
+  </div>`;
+}
+function openCreateChannel() {
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay center" onclick="if(event.target===this)closeModal()">
+      <div class="modalbox">
+        <div class="sheet-title">New Channel <span class="close-x" onclick="closeModal()">✕</span></div>
+        <div class="field"><label>Name</label><input id="chName"></div>
+        <div class="field"><label>Description</label><input id="chDesc"></div>
+        <div class="field"><label>Icon (emoji)</label><input id="chIcon" value="💬" maxlength="2"></div>
+        <div class="field"><label>Color</label><input id="chColor" type="color" value="#4F46E5"></div>
+        <div class="field"><label>Type</label><select id="chType"><option value="public">Public</option><option value="private">Private</option></select></div>
+        <div class="field"><label>Who can post</label><select id="chPerm"><option value="everyone">Everyone</option><option value="admins">Admins only</option></select></div>
+        <button class="btn btn-accent" style="width:100%;" onclick="submitChannel()">Create</button>
+      </div>
+    </div>`;
+}
+function submitChannel() {
+  const name = document.getElementById("chName").value.trim(); if (!name) return toast("Name required");
+  mutate(d => { const id = uid();
+    d.channels[id] = { id, name, description: document.getElementById("chDesc").value.trim(),
+      icon: document.getElementById("chIcon").value || "💬", color: document.getElementById("chColor").value,
+      created_by: currentUser.id, members:[currentUser.id], admins:[currentUser.id],
+      type: document.getElementById("chType").value, post_permission: document.getElementById("chPerm").value,
+      muted:[], created_at: now() };
+  }, "channels", "insert");
+  closeModal(); toast("Channel created!"); switchView("channels");
+}
+function joinChannel(id) { mutate(d => { d.channels[id].members.push(currentUser.id); }, "channels"); renderCurrentView(); }
+function leaveChannel(id) { mutate(d => { const c = d.channels[id]; c.members = c.members.filter(m=>m!==currentUser.id); }, "channels"); renderCurrentView(); }
+function renderChannelView(id) {
+  const d = db(); const c = d.channels[id]; if (!c) return switchView("channels");
+  const joined = (c.members||[]).includes(currentUser.id);
+  const canPost = joined && (c.post_permission==="everyone" || (c.admins||[]).includes(currentUser.id));
+  const posts = values(d.posts).filter(p => p.channel_id === id).sort((a,b)=>b.created_at-a.created_at);
+  document.getElementById("view-channel").innerHTML = `
+    <div class="topbar" style="position:sticky;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span onclick="switchView('channels')" style="cursor:pointer;">←</span>
+        <div class="chicon" style="width:34px;height:34px;font-size:16px;background:${c.color}">${c.icon}</div>
+        <b>${esc(c.name)}</b>
+      </div>
+      <button class="btn ${joined?'btn-outline':'btn-accent'}" onclick="joined?leaveChannel('${id}'):joinChannel('${id}')">${joined?'Leave':'Join'}</button>
+    </div>
+    <div style="padding:10px 16px;" class="dim">${esc(c.description||"")} · ${(c.members||[]).length} members</div>
+    ${canPost ? `<div style="padding:0 16px 12px;"><button class="btn btn-ghost" style="width:100%;" onclick="openComposer({type:'post',channelPreset:'${id}'})">＋ Post in ${esc(c.name)}</button></div>` : ""}
+    <div>${posts.map(postCardHTML).join("") || emptyState("📭","No posts yet","Be the first to post here")}</div>`;
+}
+
+/* =========================================================================
+   MESSAGES / DMS
+   ========================================================================= */
+function renderMessages() {
+  const d = db();
+  const myMsgs = values(d.messages).filter(m => m.sender_id === currentUser.id || m.receiver_id === currentUser.id);
+  const others = {};
+  myMsgs.forEach(m => { const other = m.sender_id === currentUser.id ? m.receiver_id : m.sender_id;
+    if (!others[other] || m.created_at > others[other].created_at) others[other] = m; });
+  const list = Object.entries(others).sort((a,b)=>b[1].created_at - a[1].created_at);
+  document.getElementById("view-messages").innerHTML = `
+    <div style="padding:14px 16px;font-weight:800;font-size:18px;">Messages</div>
+    ${list.map(([uidk, m]) => { const u = d.profiles[uidk]||{}; const unread = m.receiver_id===currentUser.id && !m.seen;
+      const online = isOnline(uidk);
+      return `<div class="convo" onclick="switchView('chat','${uidk}')">
+        <div style="position:relative;"><img class="avatar" src="${u.avatar_url||avatarFallback(u)}">${online?'<i class="online-dot"></i>':''}</div>
+        <div class="txt"><div class="name">${esc(u.full_name||"Unknown")}</div>
+          <div class="sub">${m.media?'📎 Attachment':esc((m.text||"").slice(0,34))}</div></div>
+        <div style="text-align:right;"><div class="dim" style="font-size:11px;">${timeAgo(m.created_at)}</div>
+        ${unread?'<div class="badge" style="position:static;display:inline-flex;margin-top:4px;">1</div>':''}</div>
+      </div>`; }).join("") || emptyState("💬","No conversations yet","Message someone from Explore")}`;
+}
+function isOnline(userId) {
+  const p = db().profiles[userId]; if (!p) return false;
+  return p.last_seen && (now() - p.last_seen < 60000);
+}
+function sendDirectMessage(to, text, media=null) {
+  mutate(d => { const id = uid();
+    d.messages[id] = { id, sender_id: currentUser.id, receiver_id: to, text, media, reactions:{}, seen:false, created_at: now() };
+    const nid = uid(); d.notifications[nid] = { id:nid, user_id:to, type:"message", payload:{from:currentUser.id}, from:currentUser.id, read:false, created_at: now() };
+  }, "messages", "insert");
+}
+function renderChat() {
+  const otherId = state.activeChatWith;
+  const d = db(); const u = d.profiles[otherId]||{};
+  document.getElementById("view-chat").innerHTML = `
+    <div class="chat-wrap">
+      <div class="chat-head">
+        <span onclick="switchView('messages')" style="cursor:pointer;font-size:18px;">←</span>
+        <img class="avatar" src="${u.avatar_url||avatarFallback(u)}">
+        <div style="flex:1;"><b>${esc(u.full_name||"Unknown")}</b>
+          <div class="dim" style="font-size:11px;" id="chatStatus">${isOnline(otherId)?'Online':'Offline'}</div></div>
+        <span style="font-size:18px;">📹</span><span style="font-size:18px;margin-left:10px;">📞</span>
+      </div>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-input-bar">
+        <label>➕<input type="file" id="chatFile" style="display:none;" accept="image/*,video/*"></label>
+        <input id="chatInput" placeholder="Type a message..." oninput="onTyping()" onkeydown="if(event.key==='Enter')sendChat()">
+        <span id="micBtn" class="circ-btn" style="background:var(--accent-lt);color:var(--accent);" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎙️</span>
+        <button class="circ-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>`;
+  document.getElementById("chatFile").onchange = async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const res = await fileToDataURL(f); sendDirectMessage(otherId, "", res); renderChat();
+  };
+  drawChatBody();
+  mutate(d => { values(d.messages).forEach(m => { if (m.sender_id===otherId && m.receiver_id===currentUser.id) m.seen = true; }); }, "messages");
+}
+function drawChatBody() {
+  const otherId = state.activeChatWith; const d = db();
+  const msgs = values(d.messages).filter(m => (m.sender_id===currentUser.id&&m.receiver_id===otherId)||(m.sender_id===otherId&&m.receiver_id===currentUser.id))
+    .sort((a,b)=>a.created_at-b.created_at);
+  let lastDay = null, html = "";
+  msgs.forEach(m => {
+    const day = dayStr(m.created_at);
+    if (day !== lastDay) { html += `<div class="day-sep">${day===dayStr(now())?"Today":day}</div>`; lastDay = day; }
+    const me = m.sender_id === currentUser.id;
+    html += `<div class="bubble ${me?'me':'them'}">
+      ${m.media ? (m.media.type&&m.media.type.startsWith("video")?`<video src="${m.media.url}" controls style="max-width:220px;border-radius:10px;"></video>`:`<img src="${m.media.url}" style="max-width:220px;border-radius:10px;">`) : ""}
+      ${m.voice ? `<div class="voice-msg">🎵 <audio src="${m.voice}" controls style="height:32px;"></audio></div>` : ""}
+      ${m.text ? esc(m.text) : ""}
+      <div class="t">${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} ${me?(m.seen?'✓✓':'✓'):''}</div>
+    </div>`;
+  });
+  const body = document.getElementById("chatBody");
+  if (body) { body.innerHTML = html || `<div class="dim" style="text-align:center;margin-top:30px;">Say hi 👋</div>`; body.scrollTop = body.scrollHeight; }
+}
+function sendChat() {
+  const input = document.getElementById("chatInput"); const val = input.value.trim(); if (!val) return;
+  sendDirectMessage(state.activeChatWith, val); input.value = ""; drawChatBody(); renderMessages();
+}
+function onTyping() {
+  if (bc) bc.postMessage({ table:"typing", kind:"broadcast", from: currentUser.id, to: state.activeChatWith });
+  clearTimeout(state.typingTimeout);
+  const el = document.getElementById("chatStatus"); if (el) el.textContent = "typing...";
+  state.typingTimeout = setTimeout(() => { if (el) el.textContent = isOnline(state.activeChatWith)?"Online":"Offline"; }, 2500);
+}
+/* voice recording via MediaRecorder */
+let mediaRecorder = null, chunks = [];
+async function startRec() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    chunks = []; mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.start();
+    document.getElementById("micBtn").classList.add("rec-pulse");
+    toast("🎙️ Recording... release to send");
+  } catch(e) { toast("Microphone permission denied"); }
+}
+function stopRec() {
+  if (!mediaRecorder || mediaRecorder.state === "inactive") return;
+  document.getElementById("micBtn")?.classList.remove("rec-pulse");
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(chunks, { type:"audio/webm" });
+    const reader = new FileReader();
+    reader.onload = () => {
+      mutate(d => { const id = uid();
+        d.messages[id] = { id, sender_id: currentUser.id, receiver_id: state.activeChatWith, text:"", media:null,
+          voice: reader.result, reactions:{}, seen:false, created_at: now() };
+      }, "messages", "insert");
+      drawChatBody(); renderMessages();
+    };
+    reader.readAsDataURL(blob);
+  };
+  mediaRecorder.stop();
+}
+
+/* =========================================================================
+   ACTIVITY / NOTIFICATIONS
+   ========================================================================= */
+function markActivitySeen() { /* handled inline per notif */ }
+function renderActivity() {
+  const d = db();
+  const list = values(d.notifications).filter(n => n.user_id === currentUser.id).sort((a,b)=>b.created_at-a.created_at);
+  mutate(d2 => { values(d2.notifications).forEach(n => { if (n.user_id===currentUser.id) n.read = true; }); }, "notifications");
+  refreshBadges();
+  const ICONS = { like:"❤️", comment:"💬", follow:"➕👤", message:"✉️" };
+  document.getElementById("view-activity").innerHTML = `
+    <div style="padding:14px 16px;font-weight:800;font-size:18px;">Activity</div>
+    ${list.map(n => { const u = d.profiles[n.from]||{}; const label = n.type==="like"?"liked your post":n.type==="comment"?"commented on your post":n.type==="follow"?"started following you":"sent you a message";
+      return `<div class="row-item" onclick="${n.type==='message'?`switchView('chat','${n.from}')`:n.type==='follow'?`switchView('profile','${n.from}')`:''}">
+        <img class="avatar" src="${u.avatar_url||avatarFallback(u)}"><div class="txt">${ICONS[n.type]||'🔔'} <b>${esc(u.username||'someone')}</b> ${label}
+        <div class="sub">${timeAgo(n.created_at)}</div></div></div>`; }).join("") || emptyState("🔔","No activity yet","Likes, comments & follows show up here")}`;
+}
+
+/* =========================================================================
+   PROFILE
+   ========================================================================= */
+function renderProfile(userId) {
+  state.viewingProfile = userId;
+  const d = db(); const u = d.profiles[userId]; if (!u) return;
+  const isMe = userId === currentUser.id;
+  const posts = values(d.posts).filter(p => p.user_id === userId && !p.channel_id).sort((a,b)=>b.created_at-a.created_at);
+  const media = posts.filter(p => p.media);
+  const saved = isMe ? values(d.posts).filter(p => (p.saved||[]).includes(currentUser.id)) : [];
+  const following = (currentUser.following||[]).includes(userId);
+  const score = leaderboardScore(u);
+  document.getElementById("view-profile").innerHTML = `
+    <div class="pf-banner">${!isMe?`<span onclick="switchView(history.length?'feed':'feed')" style="position:absolute;top:12px;left:12px;color:#fff;font-size:20px;cursor:pointer;" onclick="switchView('explore')">←</span>`:""}
+      <span onclick="toggleTheme()" style="position:absolute;top:12px;right:12px;color:#fff;font-size:18px;">${isMe?'⚙️':''}</span></div>
+    <div class="pf-head">
+      <div class="pf-avatar-wrap">
+        <img class="avatar xl" src="${u.avatar_url||avatarFallback(u)}">
+        ${isMe ? `<button class="btn btn-outline" onclick="openEditProfile()">Edit Profile</button>` :
+          `<div style="display:flex;gap:8px;"><button class="btn ${following?'btn-outline':'btn-accent'}" onclick="followUser('${userId}')">${following?'Following':'Follow'}</button>
+          <button class="btn btn-ghost" onclick="switchView('chat','${userId}')">Message</button></div>`}
+      </div>
+      <div class="pf-name">${esc(u.full_name)} ${u.role==='admin'?'<span class="verified">✔️</span>':''}</div>
+      <div class="dim" style="font-size:13px;">@${esc(u.username)} · ${esc(u.faculty||"")} ${u.pronouns?`· ${esc(u.pronouns)}`:""}</div>
+      ${u.bio?`<div style="font-size:13px;margin-top:8px;">${esc(u.bio)}</div>`:""}
+      <div style="margin-top:8px;">
+        ${u.website?`<span class="link-pill">🔗 Website</span>`:""}${u.github?`<span class="link-pill">💻 GitHub</span>`:""}${u.linkedin?`<span class="link-pill">💼 LinkedIn</span>`:""}
+      </div>
+      <div class="pf-stats">
+        <div><b>${posts.length}</b><span>Posts</span></div>
+        <div><b>${media.length}</b><span>Media</span></div>
+        <div><b>${(u.followers||[]).length}</b><span>Followers</span></div>
+        <div><b>🔥${u.streak_count||0}</b><span>Streak</span></div>
+      </div>
+      ${!isMe ? `<div style="text-align:center;padding:8px;"><span class="dim" style="font-size:12px;cursor:pointer;" onclick="blockUser('${userId}')">🚫 Block user</span></div>` : ""}
+    </div>
+    <div class="tabs">
+      <div class="tabbtn active" data-t="posts" onclick="setPfTab(this,'${userId}')">Posts</div>
+      <div class="tabbtn" data-t="media" onclick="setPfTab(this,'${userId}')">Media</div>
+      ${isMe?`<div class="tabbtn" data-t="saved" onclick="setPfTab(this,'${userId}')">Saved</div>`:""}
+    </div>
+    <div id="pfGrid" class="grid3">${posts.map(gridCell).join("")}</div>`;
+  window._pfData = { posts, media, saved };
+}
+function gridCell(p) {
+  return `<div class="cell" onclick="switchView('feed')">${p.media ? (p.media.type&&p.media.type.startsWith('video')?`<video src="${p.media.url}"></video>`:`<img src="${p.media.url}">`) : `<div style="padding:8px;font-size:11px;">${esc((p.text||'').slice(0,60))}</div>`}</div>`;
+}
+function setPfTab(el, userId) {
+  document.querySelectorAll('#view-profile .tabbtn').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  const key = el.dataset.t; document.getElementById('pfGrid').innerHTML = (window._pfData[key]||[]).map(gridCell).join("") || emptyState("🗂️","Nothing here yet","");
+}
+function followUser(id) {
+  mutate(d => {
+    const me = d.profiles[currentUser.id]; const them = d.profiles[id];
+    const i = me.following.indexOf(id);
+    if (i>-1) { me.following.splice(i,1); them.followers = them.followers.filter(f=>f!==currentUser.id); }
+    else { me.following.push(id); them.followers.push(currentUser.id); notify(id,"follow",{}); }
+  }, "profiles");
+  currentUser = db().profiles[currentUser.id]; renderCurrentView();
+}
+function blockUser(id) {
+  mutate(d => { d.profiles[currentUser.id].blocked.push(id); }, "profiles");
+  toast("User blocked"); switchView("explore");
+}
+function openEditProfile() {
+  const u = currentUser;
+  document.getElementById("modalRoot").innerHTML = `
+    <div class="overlay center" onclick="if(event.target===this)closeModal()">
+      <div class="modalbox">
+        <div class="sheet-title">Edit Profile <span class="close-x" onclick="closeModal()">✕</span></div>
+        <div class="field"><label>Name</label><input id="ep-name" value="${esc(u.full_name)}"></div>
+        <div class="field"><label>Bio</label><textarea id="ep-bio" style="border:1px solid var(--border);border-radius:10px;padding:10px;">${esc(u.bio||"")}</textarea></div>
+        <div class="field"><label>Pronouns</label><input id="ep-pn" value="${esc(u.pronouns||"")}"></div>
+        <div class="field"><label>Website</label><input id="ep-web" value="${esc(u.website||"")}"></div>
+        <div class="field"><label>GitHub</label><input id="ep-gh" value="${esc(u.github||"")}"></div>
+        <div class="field"><label>LinkedIn</label><input id="ep-li" value="${esc(u.linkedin||"")}"></div>
+        <div class="field"><label>Avatar</label><input type="file" id="ep-avatar" accept="image/*"></div>
+        <button class="btn btn-accent" style="width:100%;" onclick="saveProfile()">Save</button>
+      </div>
+    </div>`;
+}
+async function saveProfile() {
+  let avatarUrl = null;
+  const f = document.getElementById("ep-avatar").files[0];
+  if (f) avatarUrl = (await fileToDataURL(f, 300)).url;
+  mutate(d => { const p = d.profiles[currentUser.id];
+    p.full_name = document.getElementById("ep-name").value.trim();
+    p.bio = document.getElementById("ep-bio").value.trim();
+    p.pronouns = document.getElementById("ep-pn").value.trim();
+    p.website = document.getElementById("ep-web").value.trim();
+    p.github = document.getElementById("ep-gh").value.trim();
+    p.linkedin = document.getElementById("ep-li").value.trim();
+    if (avatarUrl) p.avatar_url = avatarUrl;
+  }, "profiles");
+  currentUser = db().profiles[currentUser.id];
+  closeModal(); toast("Profile updated"); renderCurrentView();
+}
+
+/* =========================================================================
+   ADMIN
+   ========================================================================= */
+function renderAdmin() {
+  if (currentUser.role !== "admin") { document.getElementById("view-admin").innerHTML = emptyState("🚫","Admins only",""); return; }
+  const d = db();
+  const pending = values(d.profiles).filter(p=>p.status==="pending");
+  const approved = values(d.profiles).filter(p=>p.status==="approved");
+  const banned = values(d.profiles).filter(p=>p.status==="banned");
+  const reports = values(d.reports).filter(r=>r.status==="open");
+  document.getElementById("view-admin").innerHTML = `
+    <div style="padding:14px 16px;font-weight:800;font-size:18px;">Admin Panel</div>
+    <div class="stat-cards">
+      <div class="card sc"><b>${pending.length}</b><span>Pending</span></div>
+      <div class="card sc"><b>${approved.length}</b><span>Approved</span></div>
+      <div class="card sc"><b>${banned.length}</b><span>Banned</span></div>
+    </div>
+    <div class="tabs">
+      ${["pending","approved","reports"].map(t=>`<div class="tabbtn ${state.adminTab===t?'active':''}" onclick="state.adminTab='${t}';renderAdmin();">${t[0].toUpperCase()+t.slice(1)}</div>`).join("")}
+    </div>
+    <div id="adminBody">
+      ${state.adminTab==='pending' ? (pending.map(p=>`<div class="row-item">
+          <img class="avatar" src="${p.avatar_url||avatarFallback(p)}"><div class="txt"><div class="name">${esc(p.full_name)}</div>
+          <div class="sub">@${esc(p.username)} · ${esc(p.faculty)} · Card: ${esc(p.student_card)}</div></div>
+          <button class="btn btn-accent" onclick="approveUser('${p.id}')">✔</button>
+          <button class="btn btn-danger" onclick="rejectUser('${p.id}')">✕</button>
+        </div>`).join("") || emptyState("✅","No pending requests","")) : ""}
+      ${state.adminTab==='approved' ? approved.map(p=>`<div class="row-item">
+          <img class="avatar" src="${p.avatar_url||avatarFallback(p)}"><div class="txt"><div class="name">${esc(p.full_name)} ${p.role==='admin'?'🛡️':''}</div>
+          <div class="sub">@${esc(p.username)}</div></div>
+          ${p.id!==currentUser.id?`<button class="btn btn-danger" onclick="banUser('${p.id}')">Ban</button>`:""}
+        </div>`).join("") : ""}
+      ${state.adminTab==='reports' ? (reports.map(r=>`<div class="row-item">
+          <div class="txt"><div class="name">${r.kind} report</div><div class="sub">Reason: ${esc(r.reason)}</div></div>
+          <button class="btn btn-danger" onclick="deleteReported('${r.id}')">Delete post</button>
+          <button class="btn btn-outline" onclick="dismissReport('${r.id}')">Dismiss</button>
+        </div>`).join("") || emptyState("🚩","No open reports","")) : ""}
+    </div>`;
+}
+function approveUser(id){ mutate(d=>{ d.profiles[id].status="approved"; },"profiles","update"); toast("User approved"); renderAdmin(); }
+function rejectUser(id){ mutate(d=>{ d.profiles[id].status="rejected"; },"profiles","update"); toast("User rejected"); renderAdmin(); }
+function banUser(id){ if(!confirm("Ban this user?"))return; mutate(d=>{ d.profiles[id].status="banned"; },"profiles","update"); toast("User banned"); renderAdmin(); }
+function dismissReport(id){ mutate(d=>{ d.reports[id].status="dismissed"; },"reports"); renderAdmin(); }
+function deleteReported(id){ mutate(d=>{ const r=d.reports[id]; if(r.kind==='post') delete d.posts[r.target_id]; r.status="resolved"; },"reports"); toast("Post deleted"); renderAdmin(); }
+
+/* =========================================================================
+   GAMIFICATION — leaderboard & badges
+   ========================================================================= */
+function leaderboardScore(u) {
+  const d = db();
+  const myPosts = values(d.posts).filter(p=>p.user_id===u.id);
+  const likes = myPosts.reduce((s,p)=>s+(p.likes||[]).length,0);
+  const comments = myPosts.reduce((s,p)=>s+(p.comments||[]).length,0);
+  return myPosts.length*5 + likes*2 + comments*3 + (u.followers||[]).length*1;
+}
+const BADGES = [
+  { id:"first_post", ic:"📝", name:"First Post", need: u => hasPosted(u.id)?1:0, of:1 },
+  { id:"streak7", ic:"🔥", name:"7-Day Streak", need: u => Math.min(u.streak_count||0,7), of:7 },
+  { id:"streak30", ic:"🏅", name:"30-Day Streak", need: u => Math.min(u.streak_count||0,30), of:30 },
+  { id:"streak100", ic:"💎", name:"100-Day Streak", need: u => Math.min(u.streak_count||0,100), of:100 },
+  { id:"likes100", ic:"❤️", name:"100 Likes", need: u => Math.min(totalLikes(u.id),100), of:100 },
+  { id:"popular", ic:"🌟", name:"Popular Post (50+)", need: u => Math.min(maxPostLikes(u.id),50), of:50 },
+  { id:"social", ic:"👥", name:"Social Butterfly (50 followers)", need: u => Math.min((u.followers||[]).length,50), of:50 },
+  { id:"chatter", ic:"💬", name:"Chatterbox (100 comments)", need: u => Math.min(totalCommentsMade(u.id),100), of:100 },
+  { id:"pollmaster", ic:"📊", name:"Poll Master (5 polls)", need: u => Math.min(pollsMade(u.id),5), of:5 },
+];
+function hasPosted(uid_){ return values(db().posts).some(p=>p.user_id===uid_); }
+function totalLikes(uid_){ return values(db().posts).filter(p=>p.user_id===uid_).reduce((s,p)=>s+(p.likes||[]).length,0); }
+function maxPostLikes(uid_){ return Math.max(0,...values(db().posts).filter(p=>p.user_id===uid_).map(p=>(p.likes||[]).length)); }
+function totalCommentsMade(uid_){ let c=0; values(db().posts).forEach(p=>(p.comments||[]).forEach(cm=>{if(cm.user_id===uid_)c++;})); return c; }
+function pollsMade(uid_){ return values(db().posts).filter(p=>p.user_id===uid_&&p.poll).length; }
+function renderBadgesView() {
+  const d = db();
+  const board = values(d.profiles).filter(p=>p.status==="approved").map(p=>({p,score:leaderboardScore(p)})).sort((a,b)=>b.score-a.score);
+  const myBadges = currentUser.badges || [];
+  document.getElementById("view-badges").innerHTML = `
+    <div style="padding:14px 16px;font-weight:800;font-size:18px;">🏆 Badges & Leaderboard</div>
+    <div class="badge-grid">
+      ${BADGES.map(b => { const cur = b.need(currentUser); const done = cur>=b.of; const pct = Math.round(cur/b.of*100);
+        if (done && !myBadges.includes(b.id)) { mutate(dd=>dd.profiles[currentUser.id].badges.push(b.id),"profiles"); confettiBurst(); toast("🏅 Badge unlocked: "+b.name); }
+        return `<div class="card badge-card ${done?'':'locked'}"><div class="bi">${b.ic}</div><div style="font-size:12px;font-weight:700;">${b.name}</div>
+          <div class="progress-bar"><i style="width:${pct}%"></i></div><div class="dim" style="font-size:10px;margin-top:4px;">${cur}/${b.of}</div></div>`; }).join("")}
+    </div>
+    <div class="card" style="margin:16px;padding:16px;">
+      <b>🎁 Invite friends</b>
+      <p class="dim" style="font-size:13px;">Your referral code:</p>
+      <div style="display:flex;gap:8px;"><input readonly value="${currentUser.referral}" style="flex:1;border:1px solid var(--border);border-radius:10px;padding:8px;">
+      <button class="btn btn-accent" onclick="navigator.clipboard?.writeText('${currentUser.referral}');toast('Copied!')">Copy</button></div>
+    </div>
+    <div class="section-title">Leaderboard</div>
+    ${board.map(({p,score},i)=>`<div class="lb-row"><div class="lb-rank ${i<3?'top':''}">${i+1}</div>
+      <img class="avatar" style="width:32px;height:32px;" src="${p.avatar_url||avatarFallback(p)}">
+      <div class="txt"><b>${esc(p.username)}</b> ${p.id===currentUser.id?'(you)':''}</div><div><b>${score}</b> pts</div></div>`).join("")}`;
+}
+
+/* =========================================================================
+   GLOBAL CLICK DELEGATION (mentions/hashtags)
+   ========================================================================= */
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-action]"); if (!t) return;
+  if (t.dataset.action === "hashtag") filterHashtag(t.dataset.tag);
+  if (t.dataset.action === "mention") {
+    const u = values(db().profiles).find(p=>p.username===t.dataset.u);
+    if (u) switchView("profile", u.id);
+  }
+});
+
+/* =========================================================================
+   PRESENCE HEARTBEAT (local approximation of Supabase Presence)
+   ========================================================================= */
+setInterval(() => {
+  if (!currentUser) return;
+  mutate(d => { if (d.profiles[currentUser.id]) d.profiles[currentUser.id].last_seen = now(); }, "profiles");
+}, 15000);
+
+/* =========================================================================
+   PWA — service worker
+   ========================================================================= */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+/* =========================================================================
+   PULL TO REFRESH (simple)
+   ========================================================================= */
+let touchStartY = 0;
+document.addEventListener("touchstart", e => touchStartY = e.touches[0].clientY);
+document.addEventListener("touchend", e => {
+  if (window.scrollY === 0 && state.view === "feed" && (e.changedTouches[0].clientY - touchStartY) > 90) {
+    toast("Refreshed"); renderFeed();
+  }
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+(function init() {
+  if (CONFIG.useSupabase) initSupabaseRealtime();
+  const s = getSession();
+  if (s) {
+    const p = LocalBackend.getProfile(s.userId);
+    if (p) {
+      if (p.status === "approved") return enterApp(p.id);
+      if (p.status === "pending") { document.getElementById("authScreen").classList.remove("hidden"); return renderPending(p.id); }
+    }
+  }
+  renderAuth("login");
+})();
+</script>
+</body>
+</html>
