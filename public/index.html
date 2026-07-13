@@ -3,33 +3,484 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Social App</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Campus Feed — Modular</title>
+  <style>
+    :root { --accent: #0b5fff; --bg: #f6f7fb; --card:#fff; --muted:#666; --text:#111; }
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text)}
+    .container{max-width:980px;margin:18px auto;padding:16px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    header h1{margin:0;font-size:18px}
+    #status{margin-left:auto;color:var(--muted);font-size:13px}
+    .top-controls{display:flex;gap:12px;align-items:center}
+    .dot{width:10px;height:10px;border-radius:50%;background:#ff3b30;display:inline-block}
+    .dot.hidden{display:none}
+    #composer{display:flex;gap:8px;margin-bottom:12px}
+    input[type="text"]{flex:1;padding:10px;border-radius:8px;border:1px solid #ddd}
+    button.btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer}
+    main#feed{display:flex;flex-direction:column-reverse;gap:10px}
+    .message{background:var(--card);padding:10px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+    .meta{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;gap:8px;align-items:center}
+    .text{font-size:15px;white-space:pre-wrap}
+    .controls{margin-top:8px;display:flex;gap:8px}
+    .btn.secondary{background:#e6e9f2;color:var(--text)}
+    /* Notifications panel */
+    #notif-panel{position:fixed;right:18px;top:72px;width:320px;max-height:60vh;overflow:auto;background:var(--card);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);display:none}
+    .notif-row{padding:8px;border-radius:8px;margin-bottom:6px;border:1px solid #f0f0f3}
+    .notif-row.unread{background:linear-gradient(90deg, rgba(11,95,255,0.04), transparent)}
+    /* Streak widget */
+    #streak-widget{display:inline-flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+    /* Profile customization */
+    #profile-customize{margin-top:12px;padding:10px;background:var(--card);border-radius:10px}
+    /* small helpers */
+    .hidden{display:none}
+  </style>
 </head>
 <body>
   <div class="container">
-    <header><h2>Campus Feed</h2><div id="status">offline</div></header>
+    <header>
+      <h1>Campus Feed</h1>
+      <div class="top-controls">
+        <div id="streak-widget" title="Streak widget"></div>
+        <div style="position:relative;">
+          <button id="bell-btn" class="btn secondary" style="padding:6px 8px">🔔</button>
+          <span id="bell-dot" class="dot hidden" style="position:absolute;right:-6px;top:-6px"></span>
+        </div>
+        <div style="position:relative;">
+          <button id="panel-btn" class="btn secondary" style="padding:6px 8px">Panel</button>
+          <span id="panel-notif-dot" class="dot hidden" style="position:absolute;right:-6px;top:-6px"></span>
+        </div>
+      </div>
+      <div id="status">offline</div>
+    </header>
+
     <section id="composer">
       <input id="newText" type="text" placeholder="Write a message..." />
-      <button id="sendBtn">Send</button>
+      <button id="sendBtn" class="btn">Send</button>
     </section>
+
     <main id="feed" aria-live="polite"></main>
+
+    <section id="profile-customize" aria-label="Profile customization"></section>
   </div>
 
-  <!-- local config (create locally, do not commit) -->
+  <!-- Notifications panel (toggle) -->
+  <div id="notif-panel" aria-hidden="true"></div>
+
+  <!-- Load local config (create config.js locally; do not commit) -->
   <script src="./config.js"></script>
 
   <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 
-  <!-- shared UI helpers -->
-  <script type="module" src="./lib/ui.js"></script>
+  <!-- Single-file modular scripts (type=module) -->
+  <script type="module">
+    // lib/ui module (shared helpers)
+    const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
+    const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      document.getElementById('status').textContent = 'missing keys';
+      console.error('Missing Supabase keys. Create config.js with window.__ENV.SUPABASE_URL and SUPABASE_ANON_KEY.');
+      // stop further execution
+      throw new Error('Missing Supabase keys');
+    }
+    export const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
-  <!-- core feed logic -->
-  <script type="module" src="./core/feed.js"></script>
+    export const feedEl = document.getElementById('feed');
+    export const messagesMap = new Map();
 
-  <!-- feature modules (load after core) -->
-  <script type="module" src="./features/edit.js"></script>
-  <script type="module" src="./features/dm.js"></script>
+    export function fmtTime(iso) {
+      try { return new Date(iso).toLocaleTimeString(); } catch { return ''; }
+    }
+
+    export function updateDomFromMsg(el, msg) {
+      el.querySelector('.author').textContent = msg.author || 'Anon';
+      el.querySelector('.time').textContent = fmtTime(msg.created_at || msg.updated_at || new Date().toISOString());
+      el.querySelector('.text').textContent = msg.text || '';
+      const editedFlag = el.querySelector('.edited');
+      editedFlag.style.display = msg.edited_at ? 'inline' : 'none';
+    }
+
+    export function renderMessage(msg) {
+      const id = msg.id;
+      let el = feedEl.querySelector(`[data-id="${id}"]`);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'message';
+        el.dataset.id = id;
+        el.innerHTML = `
+          <div class="meta"><strong class="author"></strong> · <span class="time"></span><span class="edited" style="display:none">edited</span></div>
+          <div class="text"></div>
+          <div class="controls"><button class="edit-btn btn secondary">Edit</button></div>
+        `;
+        feedEl.prepend(el);
+      }
+      updateDomFromMsg(el, msg);
+    }
+
+    export function upsertMessage(msg) {
+      messagesMap.set(msg.id, msg);
+      renderMessage(msg);
+    }
+
+    export function removeMessage(id) {
+      messagesMap.delete(id);
+      const node = feedEl.querySelector(`[data-id="${id}"]`);
+      if (node) node.remove();
+    }
+  </script>
+
+  <script type="module">
+    // core feed module (uses lib/ui)
+    import { supabase, upsertMessage, removeMessage } from './' + 'index.html'; // placeholder import to satisfy bundlers in single-file; not used
+    // Instead, access global supabase and helpers via window (we exported above in same file scope)
+    const s = window.supabase || (window.supabase = supabaseJs.createClient(window.__ENV.SUPABASE_URL, window.__ENV.SUPABASE_ANON_KEY, { auth: { persistSession: false } }));
+    const upsert = window.upsertMessage || window.upsertMessage;
+    // We'll reference the functions defined in the previous module via global scope
+    const feedUpsert = window.upsertMessage || (msg => { /* fallback */ });
+
+    // Local copies of helpers (safe access)
+    const _upsert = (msg) => {
+      try { window.upsertMessage(msg); } catch { /* ignore */ }
+    };
+    const _remove = (id) => {
+      try { window.removeMessage(id); } catch { /* ignore */ }
+    };
+
+    let lastFetchedAt = null;
+    let pollingInterval = null;
+
+    async function loadInitial() {
+      document.getElementById('status').textContent = 'loading';
+      const { data, error } = await s.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
+      if (error) { console.error('initial load error', error); document.getElementById('status').textContent = 'error'; return; }
+      data.forEach(m => _upsert(m));
+      if (data.length) lastFetchedAt = data[0].created_at || new Date().toISOString();
+      document.getElementById('status').textContent = 'online';
+    }
+
+    async function pollNew() {
+      if (!lastFetchedAt) return;
+      try {
+        const { data, error } = await s.from('messages').select('*').gt('created_at', lastFetchedAt).order('created_at', { ascending: false });
+        if (error) { console.error('poll error', error); return; }
+        if (data && data.length) {
+          data.forEach(m => _upsert(m));
+          lastFetchedAt = data[0].created_at || lastFetchedAt;
+        }
+      } catch (e) { console.error('poll exception', e); }
+    }
+
+    async function sendMessage(text) {
+      const tempId = 'temp-' + Math.random().toString(36).slice(2,9);
+      const now = new Date().toISOString();
+      const optimistic = { id: tempId, author: 'You', text, created_at: now };
+      _upsert(optimistic);
+
+      const { data, error } = await s.from('messages').insert({ text, author: 'You' }).select().single();
+      if (error) {
+        console.error('send error', error);
+        _remove(tempId);
+        alert('Could not send message: ' + (error.message || error));
+        return;
+      }
+      _remove(tempId);
+      _upsert(data);
+      lastFetchedAt = lastFetchedAt ? lastFetchedAt : data.created_at;
+    }
+
+    // wire composer
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'sendBtn') {
+        const input = document.getElementById('newText');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        sendMessage(text);
+      }
+    });
+
+    // init
+    (async function init() {
+      await loadInitial();
+      pollingInterval = setInterval(pollNew, 2000);
+    })();
+  </script>
+
+  <script type="module">
+    // features/notifications (self-contained)
+    // This module expects: #notif-panel, #bell-dot, #panel-notif-dot, #bell-btn, #panel-btn
+    (function () {
+      const s = window.supabase;
+      const bellDot = document.getElementById('bell-dot');
+      const panelDot = document.getElementById('panel-notif-dot');
+      const panel = document.getElementById('notif-panel');
+      const bellBtn = document.getElementById('bell-btn');
+      const panelBtn = document.getElementById('panel-btn');
+
+      async function fetchNotifications() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) return [];
+        const { data, error } = await s.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(50);
+        if (error) { console.error('fetchNotifications', error); return []; }
+        return data;
+      }
+
+      async function refreshNotificationCounts() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) return;
+        const { count, error } = await s.from('notifications').select('id', { count: 'exact', head: false }).eq('user_id', uid).is('is_read', false);
+        if (error) { console.error('refreshNotificationCounts', error); return; }
+        const unread = count || 0;
+        if (bellDot) bellDot.classList.toggle('hidden', unread === 0);
+        if (panelDot) panelDot.classList.toggle('hidden', unread === 0);
+      }
+
+      async function renderPanel() {
+        if (!panel) return;
+        panel.innerHTML = '<div style="padding:8px">Loading…</div>';
+        const items = await fetchNotifications();
+        panel.innerHTML = '';
+        const list = document.createElement('div');
+        list.className = 'notif-list';
+        items.forEach(n => {
+          const row = document.createElement('div');
+          row.className = 'notif-row' + (n.is_read ? '' : ' unread');
+          row.dataset.notifId = n.id;
+          row.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong>${n.type}</strong><div style="font-size:12px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted')};">${new Date(n.created_at).toLocaleString()}</div></div>
+              <div style="font-size:12px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted')};">›</div>
+            </div>
+            <div style="margin-top:6px">${(n.payload && n.payload.title) || n.type}</div>
+          `;
+          row.addEventListener('click', () => handleNotificationClick(n.id, n));
+          list.appendChild(row);
+        });
+        panel.appendChild(list);
+        await refreshNotificationCounts();
+      }
+
+      async function markNotificationRead(notificationId) {
+        const el = document.querySelector(`[data-notif-id="${notificationId}"]`);
+        if (el) el.classList.remove('unread');
+        const { data, error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', notificationId).select().single();
+        if (error) {
+          console.error('markNotificationRead', error);
+          await renderPanel();
+          return;
+        }
+        await refreshNotificationCounts();
+      }
+
+      async function markVisibleNotificationsRead() {
+        const visible = Array.from(panel.querySelectorAll('.notif-row.unread')).map(el => el.dataset.notifId);
+        if (!visible.length) return;
+        visible.forEach(id => {
+          const el = document.querySelector(`[data-notif-id="${id}"]`);
+          if (el) el.classList.remove('unread');
+        });
+        const { error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).in('id', visible);
+        if (error) { console.error('markVisibleNotificationsRead', error); await renderPanel(); return; }
+        await refreshNotificationCounts();
+      }
+
+      async function handleNotificationClick(id, rowData) {
+        await markNotificationRead(id);
+        try {
+          const payload = rowData.payload || {};
+          if (payload.url) window.open(payload.url, '_blank');
+        } catch (e) {}
+      }
+
+      // Toggle panel
+      function togglePanel() {
+        const visible = panel.style.display !== 'block';
+        panel.style.display = visible ? 'block' : 'none';
+        panel.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        if (visible) {
+          setTimeout(markVisibleNotificationsRead, 300);
+          renderPanel();
+        }
+      }
+
+      if (bellBtn) bellBtn.addEventListener('click', togglePanel);
+      if (panelBtn) panelBtn.addEventListener('click', togglePanel);
+
+      // Observe panel visibility changes (in case other UI toggles it)
+      let panelOpen = false;
+      const observer = new MutationObserver(() => {
+        const visible = panel && panel.offsetParent !== null;
+        if (visible && !panelOpen) {
+          panelOpen = true;
+          setTimeout(markVisibleNotificationsRead, 300);
+        } else if (!visible) {
+          panelOpen = false;
+        }
+      });
+      if (panel) observer.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
+
+      // initial
+      (async function init() {
+        await renderPanel();
+        await refreshNotificationCounts();
+        // poll counts every 6s to keep badges in sync (lightweight)
+        setInterval(refreshNotificationCounts, 6000);
+      })();
+
+      // expose for debugging
+      window.NOTIFS = { renderPanel, refreshNotificationCounts, markNotificationRead, markVisibleNotificationsRead };
+    })();
+  </script>
+
+  <script type="module">
+    // features/streaks (self-contained)
+    (function () {
+      const s = window.supabase;
+      const widget = document.getElementById('streak-widget');
+      if (!widget) return;
+
+      widget.innerHTML = `
+        <div id="streak-inner" style="display:flex;align-items:center;gap:10px;">
+          <svg id="streak-flame" viewBox="0 0 24 24" width="36" height="36" style="transition: transform .35s ease, filter .35s ease;">
+            <path d="M12 2C10 6 7 7 7 11c0 3 3 5 5 7 2-2 5-4 5-7 0-4-3-5-5-9z" fill="#ff6a00"/>
+          </svg>
+          <div>
+            <div id="streak-count" style="font-weight:600">0 day streak</div>
+            <div id="streak-progress" style="font-size:12px;color:var(--muted)">No activity yet</div>
+          </div>
+          <button id="streak-claim" class="btn secondary" style="margin-left:8px;padding:6px 8px;border-radius:6px;">Claim</button>
+        </div>
+      `;
+
+      async function fetchStreak() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) return null;
+        const { data, error } = await s.from('streaks').select('*').eq('user_id', uid).single();
+        if (error && error.code !== 'PGRST116') { console.error('fetchStreak', error); return null; }
+        return data;
+      }
+
+      function animateFlame() {
+        const flame = document.getElementById('streak-flame');
+        flame.style.transform = 'scale(1.25)';
+        flame.style.filter = 'drop-shadow(0 6px 12px rgba(255,106,0,0.35))';
+        setTimeout(() => { flame.style.transform = ''; flame.style.filter = ''; }, 900);
+      }
+
+      async function refreshStreakUI() {
+        const srow = await fetchStreak();
+        const countEl = document.getElementById('streak-count');
+        const progEl = document.getElementById('streak-progress');
+        if (!srow) {
+          countEl.textContent = '0 day streak';
+          progEl.textContent = 'No activity yet';
+          return;
+        }
+        countEl.textContent = `${srow.current_streak} day streak`;
+        progEl.textContent = `Best: ${srow.best_streak}`;
+      }
+
+      async function claimDaily() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) { alert('Sign in to claim'); return; }
+        const { data, error } = await s.rpc('record_daily_activity', { p_user_id: uid });
+        if (error) { console.error('claimDaily', error); alert('Could not claim'); return; }
+        animateFlame();
+        await refreshStreakUI();
+        // create a notification for streak increment
+        await s.from('notifications').insert({ user_id: uid, type: 'streak', payload: { title: `🔥 ${data.current_streak} day streak!` }, is_read: false });
+        // refresh notification counts if module exists
+        if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts();
+      }
+
+      document.getElementById('streak-claim').addEventListener('click', claimDaily);
+      refreshStreakUI();
+      window.STREAKS = { refreshStreakUI, claimDaily, animateFlame };
+    })();
+  </script>
+
+  <script type="module">
+    // features/profile_customization (self-contained)
+    (function () {
+      const s = window.supabase;
+      const root = document.getElementById('profile-customize');
+      if (!root) return;
+
+      root.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div>
+            <img id="pc-avatar" src="" alt="avatar" style="width:72px;height:72px;border-radius:12px;object-fit:cover;border:1px solid #ddd"/>
+            <div><input id="pc-avatar-input" type="file" accept="image/*" /></div>
+          </div>
+          <div style="flex:1">
+            <div><label>Display name</label><input id="pc-name" type="text" style="width:100%"/></div>
+            <div style="margin-top:8px;"><label>Bio</label><textarea id="pc-bio" rows="3" style="width:100%"></textarea></div>
+            <div style="margin-top:8px;">
+              <label>Theme color</label>
+              <input id="pc-accent" type="color" value="#0b5fff" />
+              <button id="pc-save" class="btn" style="margin-left:8px;padding:6px 8px;">Save</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      async function loadProfile() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) return;
+        const { data, error } = await s.from('profiles').select('id, full_name, avatar_url, bio, theme').eq('id', uid).single();
+        if (error) { console.error('loadProfile', error); return; }
+        document.getElementById('pc-avatar').src = data?.avatar_url || '/default-avatar.png';
+        document.getElementById('pc-name').value = data?.full_name || '';
+        document.getElementById('pc-bio').value = data?.bio || '';
+        const theme = data?.theme || { accent: '#0b5fff', mode: 'light' };
+        document.getElementById('pc-accent').value = theme.accent || '#0b5fff';
+        document.documentElement.style.setProperty('--accent', theme.accent || '#0b5fff');
+      }
+
+      async function saveProfile() {
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) { alert('Sign in to save'); return; }
+        const full_name = document.getElementById('pc-name').value.trim();
+        const bio = document.getElementById('pc-bio').value.trim();
+        const theme = { accent: document.getElementById('pc-accent').value, mode: 'light' };
+        const { data, error } = await s.from('profiles').upsert({ id: uid, full_name, bio, theme }).select().single();
+        if (error) { console.error('saveProfile', error); alert('Could not save profile'); return; }
+        document.documentElement.style.setProperty('--accent', theme.accent);
+        alert('Profile saved');
+      }
+
+      document.getElementById('pc-save').addEventListener('click', saveProfile);
+
+      document.getElementById('pc-avatar-input').addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const uid = s.auth.getUser()?.data?.user?.id;
+        if (!uid) { alert('Sign in to upload'); return; }
+        const filePath = `avatars/${uid}/${Date.now()}-${file.name}`;
+        const { data, error } = await s.storage.from('avatars').upload(filePath, file, { upsert: true });
+        if (error) { console.error('avatar upload', error); alert('Upload failed'); return; }
+        const url = s.storage.from('avatars').getPublicUrl(data.path).publicURL;
+        await s.from('profiles').upsert({ id: uid, avatar_url: url }).select();
+        document.getElementById('pc-avatar').src = url;
+      });
+
+      loadProfile();
+      window.PROFILE_CUSTOM = { loadProfile, saveProfile };
+    })();
+  </script>
+
+  <script>
+    // Small compatibility glue: expose functions defined in module scripts to global scope
+    // (This keeps the single-file approach simple for dropping into a static site.)
+    // If modules already exported, these will be no-ops.
+    (function exposeHelpers() {
+      // If lib/ui exported functions are not globally available, create wrappers that call the functions defined earlier in the file scope.
+      try {
+        if (!window.upsertMessage && typeof upsertMessage === 'function') window.upsertMessage = upsertMessage;
+        if (!window.removeMessage && typeof removeMessage === 'function') window.removeMessage = removeMessage;
+        if (!window.supabase && typeof supabase !== 'undefined') window.supabase = supabase;
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
 </body>
 </html>
