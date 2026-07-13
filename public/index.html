@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Social App</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header><h2>Campus Feed</h2><div id="status">offline</div></header>
+    <section id="composer">
+      <input id="newText" type="text" placeholder="Write a message..." />
+      <button id="sendBtn">Send</button>
+    </section>
+    <main id="feed" aria-live="polite"></main>
+  </div>
+
+  <!-- local config (create locally, do not commit) -->
+  <script src="./config.js"></script>
+
+  <!-- Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+
+  <!-- shared UI helpers -->
+  <script type="module" src="./lib/ui.js"></script>
+
+  <!-- core feed logic -->
+  <script type="module" src="./core/feed.js"></script>
+
+  <!-- feature modules (load after core) -->
+  <script type="module" src="./features/edit.js"></script>
+  <script type="module" src="./features/dm.js"></script>
+</body>
+</html>
