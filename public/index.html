@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Campus Feed — Modular</title>
+  <title>Campus Feed — Fixed Notifications & Guide</title>
   <style>
     :root { --accent: #0b5fff; --bg: #f6f7fb; --card:#fff; --muted:#666; --text:#111; }
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text)}
@@ -24,13 +24,18 @@
     .controls{margin-top:8px;display:flex;gap:8px}
     .btn.secondary{background:#e6e9f2;color:var(--text)}
     /* Notifications panel */
-    #notif-panel{position:fixed;right:18px;top:72px;width:320px;max-height:60vh;overflow:auto;background:var(--card);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);display:none}
+    #notif-panel{position:fixed;right:18px;top:72px;width:320px;max-height:60vh;overflow:auto;background:var(--card);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);display:none;z-index:9999}
     .notif-row{padding:8px;border-radius:8px;margin-bottom:6px;border:1px solid #f0f0f3}
     .notif-row.unread{background:linear-gradient(90deg, rgba(11,95,255,0.04), transparent)}
     /* Streak widget */
     #streak-widget{display:inline-flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,0.04)}
     /* Profile customization */
     #profile-customize{margin-top:12px;padding:10px;background:var(--card);border-radius:10px}
+    /* Guide modal */
+    #first-guide{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);padding:18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.12);z-index:10000;max-width:420px;display:none}
+    #first-guide h3{margin:0 0 8px 0}
+    #first-guide p{margin:0 0 12px 0;color:var(--muted)}
+    #first-guide button{margin-right:8px}
     /* small helpers */
     .hidden{display:none}
   </style>
@@ -66,33 +71,44 @@
   <!-- Notifications panel (toggle) -->
   <div id="notif-panel" aria-hidden="true"></div>
 
+  <!-- First-time guide modal (shows once per user) -->
+  <div id="first-guide" role="dialog" aria-modal="true" aria-hidden="true">
+    <h3>Welcome to Campus Feed</h3>
+    <p>Quick tips: send messages, edit inline, claim daily streaks, and customize your profile. This will only show once.</p>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <button id="guide-dismiss" class="btn secondary">Got it</button>
+      <button id="guide-never" class="btn">Don't show again</button>
+    </div>
+  </div>
+
   <!-- Load local config (create config.js locally; do not commit) -->
   <script src="./config.js"></script>
 
   <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 
-  <!-- Single-file modular scripts (type=module) -->
-  <script type="module">
-    // lib/ui module (shared helpers)
+  <!-- Single-file modular scripts -->
+  <script>
+  (function () {
+    // ======= CONFIG & CLIENT =======
     const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
     const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       document.getElementById('status').textContent = 'missing keys';
       console.error('Missing Supabase keys. Create config.js with window.__ENV.SUPABASE_URL and SUPABASE_ANON_KEY.');
-      // stop further execution
-      throw new Error('Missing Supabase keys');
+      return;
     }
-    export const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+    window.supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
-    export const feedEl = document.getElementById('feed');
-    export const messagesMap = new Map();
+    // ======= SHARED UI HELPERS =======
+    const feedEl = document.getElementById('feed');
+    const messagesMap = new Map();
 
-    export function fmtTime(iso) {
+    function fmtTime(iso) {
       try { return new Date(iso).toLocaleTimeString(); } catch { return ''; }
     }
 
-    export function updateDomFromMsg(el, msg) {
+    function updateDomFromMsg(el, msg) {
       el.querySelector('.author').textContent = msg.author || 'Anon';
       el.querySelector('.time').textContent = fmtTime(msg.created_at || msg.updated_at || new Date().toISOString());
       el.querySelector('.text').textContent = msg.text || '';
@@ -100,7 +116,7 @@
       editedFlag.style.display = msg.edited_at ? 'inline' : 'none';
     }
 
-    export function renderMessage(msg) {
+    function renderMessage(msg) {
       const id = msg.id;
       let el = feedEl.querySelector(`[data-id="${id}"]`);
       if (!el) {
@@ -117,35 +133,23 @@
       updateDomFromMsg(el, msg);
     }
 
-    export function upsertMessage(msg) {
+    function upsertMessage(msg) {
       messagesMap.set(msg.id, msg);
       renderMessage(msg);
     }
 
-    export function removeMessage(id) {
+    function removeMessage(id) {
       messagesMap.delete(id);
       const node = feedEl.querySelector(`[data-id="${id}"]`);
       if (node) node.remove();
     }
-  </script>
 
-  <script type="module">
-    // core feed module (uses lib/ui)
-    import { supabase, upsertMessage, removeMessage } from './' + 'index.html'; // placeholder import to satisfy bundlers in single-file; not used
-    // Instead, access global supabase and helpers via window (we exported above in same file scope)
-    const s = window.supabase || (window.supabase = supabaseJs.createClient(window.__ENV.SUPABASE_URL, window.__ENV.SUPABASE_ANON_KEY, { auth: { persistSession: false } }));
-    const upsert = window.upsertMessage || window.upsertMessage;
-    // We'll reference the functions defined in the previous module via global scope
-    const feedUpsert = window.upsertMessage || (msg => { /* fallback */ });
+    // Expose for other inline modules
+    window._upsertMessage = upsertMessage;
+    window._removeMessage = removeMessage;
 
-    // Local copies of helpers (safe access)
-    const _upsert = (msg) => {
-      try { window.upsertMessage(msg); } catch { /* ignore */ }
-    };
-    const _remove = (id) => {
-      try { window.removeMessage(id); } catch { /* ignore */ }
-    };
-
+    // ======= CORE FEED (polling + optimistic) =======
+    const s = window.supabase;
     let lastFetchedAt = null;
     let pollingInterval = null;
 
@@ -153,7 +157,7 @@
       document.getElementById('status').textContent = 'loading';
       const { data, error } = await s.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
       if (error) { console.error('initial load error', error); document.getElementById('status').textContent = 'error'; return; }
-      data.forEach(m => _upsert(m));
+      data.forEach(m => upsertMessage(m));
       if (data.length) lastFetchedAt = data[0].created_at || new Date().toISOString();
       document.getElementById('status').textContent = 'online';
     }
@@ -164,7 +168,7 @@
         const { data, error } = await s.from('messages').select('*').gt('created_at', lastFetchedAt).order('created_at', { ascending: false });
         if (error) { console.error('poll error', error); return; }
         if (data && data.length) {
-          data.forEach(m => _upsert(m));
+          data.forEach(m => upsertMessage(m));
           lastFetchedAt = data[0].created_at || lastFetchedAt;
         }
       } catch (e) { console.error('poll exception', e); }
@@ -174,21 +178,20 @@
       const tempId = 'temp-' + Math.random().toString(36).slice(2,9);
       const now = new Date().toISOString();
       const optimistic = { id: tempId, author: 'You', text, created_at: now };
-      _upsert(optimistic);
+      upsertMessage(optimistic);
 
       const { data, error } = await s.from('messages').insert({ text, author: 'You' }).select().single();
       if (error) {
         console.error('send error', error);
-        _remove(tempId);
+        removeMessage(tempId);
         alert('Could not send message: ' + (error.message || error));
         return;
       }
-      _remove(tempId);
-      _upsert(data);
+      removeMessage(tempId);
+      upsertMessage(data);
       lastFetchedAt = lastFetchedAt ? lastFetchedAt : data.created_at;
     }
 
-    // wire composer
     document.addEventListener('click', (e) => {
       if (e.target.id === 'sendBtn') {
         const input = document.getElementById('newText');
@@ -199,26 +202,29 @@
       }
     });
 
-    // init
-    (async function init() {
+    (async function initFeed() {
       await loadInitial();
       pollingInterval = setInterval(pollNew, 2000);
     })();
-  </script>
 
-  <script type="module">
-    // features/notifications (self-contained)
-    // This module expects: #notif-panel, #bell-dot, #panel-notif-dot, #bell-btn, #panel-btn
-    (function () {
-      const s = window.supabase;
+    // ======= NOTIFICATIONS MODULE (fixed) =======
+    (function notificationsModule() {
       const bellDot = document.getElementById('bell-dot');
       const panelDot = document.getElementById('panel-notif-dot');
       const panel = document.getElementById('notif-panel');
       const bellBtn = document.getElementById('bell-btn');
       const panelBtn = document.getElementById('panel-btn');
 
+      // Wait for auth to be ready and then fetch counts
+      async function getCurrentUserId() {
+        try {
+          const user = s.auth.getUser();
+          return user?.data?.user?.id || null;
+        } catch { return null; }
+      }
+
       async function fetchNotifications() {
-        const uid = s.auth.getUser()?.data?.user?.id;
+        const uid = await getCurrentUserId();
         if (!uid) return [];
         const { data, error } = await s.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(50);
         if (error) { console.error('fetchNotifications', error); return []; }
@@ -226,8 +232,14 @@
       }
 
       async function refreshNotificationCounts() {
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) return;
+        const uid = await getCurrentUserId();
+        if (!uid) {
+          // hide dots if no user
+          if (bellDot) bellDot.classList.add('hidden');
+          if (panelDot) panelDot.classList.add('hidden');
+          return;
+        }
+        // Use head:false count query to get exact unread count
         const { count, error } = await s.from('notifications').select('id', { count: 'exact', head: false }).eq('user_id', uid).is('is_read', false);
         if (error) { console.error('refreshNotificationCounts', error); return; }
         const unread = count || 0;
@@ -248,10 +260,10 @@
           row.dataset.notifId = n.id;
           row.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><strong>${n.type}</strong><div style="font-size:12px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted')};">${new Date(n.created_at).toLocaleString()}</div></div>
+              <div><strong>${escapeHtml(n.type)}</strong><div style="font-size:12px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted')};">${new Date(n.created_at).toLocaleString()}</div></div>
               <div style="font-size:12px;color:${getComputedStyle(document.documentElement).getPropertyValue('--muted')};">›</div>
             </div>
-            <div style="margin-top:6px">${(n.payload && n.payload.title) || n.type}</div>
+            <div style="margin-top:6px">${escapeHtml((n.payload && n.payload.title) || n.type)}</div>
           `;
           row.addEventListener('click', () => handleNotificationClick(n.id, n));
           list.appendChild(row);
@@ -260,10 +272,18 @@
         await refreshNotificationCounts();
       }
 
+      // safe HTML escape for small strings
+      function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      }
+
       async function markNotificationRead(notificationId) {
         const el = document.querySelector(`[data-notif-id="${notificationId}"]`);
         if (el) el.classList.remove('unread');
-        const { data, error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', notificationId).select().single();
+        const uid = await getCurrentUserId();
+        if (!uid) { await renderPanel(); return; }
+        const { data, error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', notificationId).eq('user_id', uid).select().single();
         if (error) {
           console.error('markNotificationRead', error);
           await renderPanel();
@@ -273,14 +293,22 @@
       }
 
       async function markVisibleNotificationsRead() {
+        if (!panel) return;
         const visible = Array.from(panel.querySelectorAll('.notif-row.unread')).map(el => el.dataset.notifId);
         if (!visible.length) return;
+        // optimistic hide
         visible.forEach(id => {
           const el = document.querySelector(`[data-notif-id="${id}"]`);
           if (el) el.classList.remove('unread');
         });
-        const { error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).in('id', visible);
-        if (error) { console.error('markVisibleNotificationsRead', error); await renderPanel(); return; }
+        const uid = await getCurrentUserId();
+        if (!uid) { await renderPanel(); return; }
+        const { error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).in('id', visible).eq('user_id', uid);
+        if (error) {
+          console.error('markVisibleNotificationsRead', error);
+          await renderPanel();
+          return;
+        }
         await refreshNotificationCounts();
       }
 
@@ -292,12 +320,12 @@
         } catch (e) {}
       }
 
-      // Toggle panel
       function togglePanel() {
         const visible = panel.style.display !== 'block';
         panel.style.display = visible ? 'block' : 'none';
         panel.setAttribute('aria-hidden', visible ? 'false' : 'true');
         if (visible) {
+          // mark visible after a short debounce so accidental opens don't mark read
           setTimeout(markVisibleNotificationsRead, 300);
           renderPanel();
         }
@@ -319,26 +347,33 @@
       });
       if (panel) observer.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
 
-      // initial
-      (async function init() {
-        await renderPanel();
-        await refreshNotificationCounts();
-        // poll counts every 6s to keep badges in sync (lightweight)
-        setInterval(refreshNotificationCounts, 6000);
-      })();
+      // Ensure counts refresh after auth changes
+      s.auth.onAuthStateChange(async (event, session) => {
+        // when user signs in, refresh counts and panel
+        if (session && session.user) {
+          await refreshNotificationCounts();
+          await renderPanel();
+        } else {
+          // signed out: hide dots
+          if (bellDot) bellDot.classList.add('hidden');
+          if (panelDot) panelDot.classList.add('hidden');
+        }
+      });
+
+      // initial: try to refresh counts after a short delay (auth may be restored)
+      setTimeout(() => { refreshNotificationCounts(); renderPanel(); }, 600);
+
+      // poll counts every 6s to keep badges in sync (lightweight)
+      setInterval(refreshNotificationCounts, 6000);
 
       // expose for debugging
       window.NOTIFS = { renderPanel, refreshNotificationCounts, markNotificationRead, markVisibleNotificationsRead };
     })();
-  </script>
 
-  <script type="module">
-    // features/streaks (self-contained)
-    (function () {
-      const s = window.supabase;
+    // ======= STREAKS MODULE (keeps same behavior) =======
+    (function streaksModule() {
       const widget = document.getElementById('streak-widget');
       if (!widget) return;
-
       widget.innerHTML = `
         <div id="streak-inner" style="display:flex;align-items:center;gap:10px;">
           <svg id="streak-flame" viewBox="0 0 24 24" width="36" height="36" style="transition: transform .35s ease, filter .35s ease;">
@@ -389,7 +424,6 @@
         await refreshStreakUI();
         // create a notification for streak increment
         await s.from('notifications').insert({ user_id: uid, type: 'streak', payload: { title: `🔥 ${data.current_streak} day streak!` }, is_read: false });
-        // refresh notification counts if module exists
         if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts();
       }
 
@@ -397,15 +431,11 @@
       refreshStreakUI();
       window.STREAKS = { refreshStreakUI, claimDaily, animateFlame };
     })();
-  </script>
 
-  <script type="module">
-    // features/profile_customization (self-contained)
-    (function () {
-      const s = window.supabase;
+    // ======= PROFILE CUSTOMIZATION MODULE =======
+    (function profileModule() {
       const root = document.getElementById('profile-customize');
       if (!root) return;
-
       root.innerHTML = `
         <div style="display:flex;gap:12px;align-items:center;">
           <div>
@@ -464,23 +494,130 @@
         document.getElementById('pc-avatar').src = url;
       });
 
+      // refresh profile when auth changes
+      s.auth.onAuthStateChange((event, session) => {
+        if (session && session.user) loadProfile();
+      });
+
       loadProfile();
       window.PROFILE_CUSTOM = { loadProfile, saveProfile };
     })();
-  </script>
 
-  <script>
-    // Small compatibility glue: expose functions defined in module scripts to global scope
-    // (This keeps the single-file approach simple for dropping into a static site.)
-    // If modules already exported, these will be no-ops.
-    (function exposeHelpers() {
-      // If lib/ui exported functions are not globally available, create wrappers that call the functions defined earlier in the file scope.
-      try {
-        if (!window.upsertMessage && typeof upsertMessage === 'function') window.upsertMessage = upsertMessage;
-        if (!window.removeMessage && typeof removeMessage === 'function') window.removeMessage = removeMessage;
-        if (!window.supabase && typeof supabase !== 'undefined') window.supabase = supabase;
-      } catch (e) { /* ignore */ }
+    // ======= GUIDE: show once per user lifetime =======
+    (function guideModule() {
+      const guide = document.getElementById('first-guide');
+      const dismiss = document.getElementById('guide-dismiss');
+      const never = document.getElementById('guide-never');
+
+      function getSeenKey(uid) {
+        return `campus_feed_seen_guide_v1_${uid || 'anon'}`;
+      }
+
+      async function maybeShowGuide() {
+        // wait for auth to be ready
+        const user = s.auth.getUser();
+        const uid = user?.data?.user?.id || null;
+
+        // if user is signed in, use per-user key; otherwise use anon key
+        const key = getSeenKey(uid);
+        try {
+          const seen = localStorage.getItem(key);
+          if (seen === 'true') return; // already seen
+        } catch (e) { /* ignore localStorage errors */ }
+
+        // show guide
+        guide.style.display = 'block';
+        guide.setAttribute('aria-hidden', 'false');
+
+        function hideAndRemember(doRemember = true) {
+          guide.style.display = 'none';
+          guide.setAttribute('aria-hidden', 'true');
+          if (doRemember) {
+            try { localStorage.setItem(key, 'true'); } catch (e) {}
+          }
+        }
+
+        dismiss.addEventListener('click', () => hideAndRemember(true));
+        never.addEventListener('click', () => hideAndRemember(true));
+      }
+
+      // show guide once after auth state is known (short delay)
+      s.auth.onAuthStateChange((event, session) => {
+        setTimeout(maybeShowGuide, 300);
+      });
+      // also try on load (in case auth restored)
+      setTimeout(maybeShowGuide, 800);
     })();
+
+    // ======= EDIT FLOW (inline) =======
+    (function editModule() {
+      document.addEventListener('click', (e) => {
+        if (e.target.matches('.edit-btn')) {
+          const item = e.target.closest('.message');
+          startEditFlow(item);
+        }
+      });
+
+      async function startEditFlow(item) {
+        const id = item.dataset.id;
+        const old = messagesMap.get(id);
+        if (!old) return;
+        const textEl = item.querySelector('.text');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = old.text;
+        input.style.width = '100%';
+        item.replaceChild(input, textEl);
+        input.focus();
+
+        const finish = async (commit) => {
+          if (!commit) { item.replaceChild(textEl, input); return; }
+          const newText = input.value.trim();
+          if (newText === old.text) { item.replaceChild(textEl, input); return; }
+          const optimistic = { ...old, text: newText, edited_at: new Date().toISOString() };
+          upsertMessage(optimistic);
+          try {
+            const { data, error } = await s.from('messages').update({ text: newText, edited_at: optimistic.edited_at }).eq('id', id).select().single();
+            if (error) throw error;
+            upsertMessage(data);
+          } catch (err) {
+            console.error('update failed', err);
+            upsertMessage(old);
+            alert('Could not save edit: ' + (err.message || err));
+          } finally {
+            const restored = item.querySelector('.text') || document.createElement('div');
+            restored.className = 'text';
+            restored.textContent = messagesMap.get(id).text;
+            item.replaceChild(restored, input);
+          }
+        };
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') finish(true);
+          if (e.key === 'Escape') finish(false);
+        }, { once: true });
+
+        input.addEventListener('blur', () => finish(true), { once: true });
+      }
+    })();
+
+    // ======= small helper: refresh notification counts on page focus/login =======
+    (function focusAndLoginSync() {
+      // refresh counts when page becomes visible (user returned)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && window.NOTIFS && window.NOTIFS.refreshNotificationCounts) {
+          window.NOTIFS.refreshNotificationCounts();
+        }
+      });
+
+      // refresh counts after sign-in (auth state change handled in notifications module)
+      // also refresh after initial load
+      setTimeout(() => {
+        if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts();
+      }, 1200);
+    })();
+
+  })();
   </script>
 </body>
 </html>
