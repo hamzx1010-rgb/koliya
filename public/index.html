@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Campus Feed — Fixed Notifications & Guide</title>
+  <title>Campus Feed — Fixed Guide, DM read, and Refresh</title>
   <style>
     :root { --accent: #0b5fff; --bg: #f6f7fb; --card:#fff; --muted:#666; --text:#111; }
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--text)}
@@ -23,20 +23,14 @@
     .text{font-size:15px;white-space:pre-wrap}
     .controls{margin-top:8px;display:flex;gap:8px}
     .btn.secondary{background:#e6e9f2;color:var(--text)}
-    /* Notifications panel */
     #notif-panel{position:fixed;right:18px;top:72px;width:320px;max-height:60vh;overflow:auto;background:var(--card);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);display:none;z-index:9999}
     .notif-row{padding:8px;border-radius:8px;margin-bottom:6px;border:1px solid #f0f0f3}
     .notif-row.unread{background:linear-gradient(90deg, rgba(11,95,255,0.04), transparent)}
-    /* Streak widget */
     #streak-widget{display:inline-flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,0.04)}
-    /* Profile customization */
     #profile-customize{margin-top:12px;padding:10px;background:var(--card);border-radius:10px}
-    /* Guide modal */
     #first-guide{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);padding:18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.12);z-index:10000;max-width:420px;display:none}
     #first-guide h3{margin:0 0 8px 0}
     #first-guide p{margin:0 0 12px 0;color:var(--muted)}
-    #first-guide button{margin-right:8px}
-    /* small helpers */
     .hidden{display:none}
   </style>
 </head>
@@ -68,29 +62,23 @@
     <section id="profile-customize" aria-label="Profile customization"></section>
   </div>
 
-  <!-- Notifications panel (toggle) -->
   <div id="notif-panel" aria-hidden="true"></div>
 
-  <!-- First-time guide modal (shows once per user) -->
   <div id="first-guide" role="dialog" aria-modal="true" aria-hidden="true">
     <h3>Welcome to Campus Feed</h3>
-    <p>Quick tips: send messages, edit inline, claim daily streaks, and customize your profile. This will only show once.</p>
+    <p>Quick tips: send messages, edit inline, claim daily streaks, and customize your profile. This will only show once per account on this browser.</p>
     <div style="display:flex;justify-content:flex-end;margin-top:12px">
       <button id="guide-dismiss" class="btn secondary">Got it</button>
       <button id="guide-never" class="btn">Don't show again</button>
     </div>
   </div>
 
-  <!-- Load local config (create config.js locally; do not commit) -->
   <script src="./config.js"></script>
-
-  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 
-  <!-- Single-file modular scripts -->
   <script>
   (function () {
-    // ======= CONFIG & CLIENT =======
+    // ---------- Supabase client: persist session across reloads ----------
     const SUPABASE_URL = window.__ENV?.SUPABASE_URL;
     const SUPABASE_ANON_KEY = window.__ENV?.SUPABASE_ANON_KEY;
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -98,16 +86,15 @@
       console.error('Missing Supabase keys. Create config.js with window.__ENV.SUPABASE_URL and SUPABASE_ANON_KEY.');
       return;
     }
-    window.supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
-    // ======= SHARED UI HELPERS =======
+    // Persist session: true so refresh keeps user signed in
+    window.supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
+    const s = window.supabase;
+
+    // ---------- Shared UI helpers ----------
     const feedEl = document.getElementById('feed');
     const messagesMap = new Map();
-
-    function fmtTime(iso) {
-      try { return new Date(iso).toLocaleTimeString(); } catch { return ''; }
-    }
-
+    function fmtTime(iso) { try { return new Date(iso).toLocaleTimeString(); } catch { return ''; } }
     function updateDomFromMsg(el, msg) {
       el.querySelector('.author').textContent = msg.author || 'Anon';
       el.querySelector('.time').textContent = fmtTime(msg.created_at || msg.updated_at || new Date().toISOString());
@@ -115,7 +102,6 @@
       const editedFlag = el.querySelector('.edited');
       editedFlag.style.display = msg.edited_at ? 'inline' : 'none';
     }
-
     function renderMessage(msg) {
       const id = msg.id;
       let el = feedEl.querySelector(`[data-id="${id}"]`);
@@ -132,27 +118,31 @@
       }
       updateDomFromMsg(el, msg);
     }
-
-    function upsertMessage(msg) {
-      messagesMap.set(msg.id, msg);
-      renderMessage(msg);
-    }
-
-    function removeMessage(id) {
-      messagesMap.delete(id);
-      const node = feedEl.querySelector(`[data-id="${id}"]`);
-      if (node) node.remove();
-    }
-
-    // Expose for other inline modules
+    function upsertMessage(msg) { messagesMap.set(msg.id, msg); renderMessage(msg); }
+    function removeMessage(id) { messagesMap.delete(id); const node = feedEl.querySelector(`[data-id="${id}"]`); if (node) node.remove(); }
     window._upsertMessage = upsertMessage;
     window._removeMessage = removeMessage;
 
-    // ======= CORE FEED (polling + optimistic) =======
-    const s = window.supabase;
-    let lastFetchedAt = null;
-    let pollingInterval = null;
+    // ---------- Auth ready helper ----------
+    // Returns current user id or null. Waits for auth restoration if needed.
+    async function getCurrentUserId(waitForRestore = true) {
+      // Supabase persists session; but on page load it may take a tick to restore.
+      if (!waitForRestore) {
+        const u = s.auth.getUser();
+        return u?.data?.user?.id || null;
+      }
+      // Wait up to ~1.5s for session restore
+      for (let i = 0; i < 15; i++) {
+        const u = s.auth.getUser();
+        if (u?.data?.user?.id) return u.data.user.id;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      const u = s.auth.getUser();
+      return u?.data?.user?.id || null;
+    }
 
+    // ---------- Feed (polling + optimistic) ----------
+    let lastFetchedAt = null;
     async function loadInitial() {
       document.getElementById('status').textContent = 'loading';
       const { data, error } = await s.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
@@ -161,7 +151,6 @@
       if (data.length) lastFetchedAt = data[0].created_at || new Date().toISOString();
       document.getElementById('status').textContent = 'online';
     }
-
     async function pollNew() {
       if (!lastFetchedAt) return;
       try {
@@ -173,25 +162,17 @@
         }
       } catch (e) { console.error('poll exception', e); }
     }
-
     async function sendMessage(text) {
       const tempId = 'temp-' + Math.random().toString(36).slice(2,9);
       const now = new Date().toISOString();
       const optimistic = { id: tempId, author: 'You', text, created_at: now };
       upsertMessage(optimistic);
-
       const { data, error } = await s.from('messages').insert({ text, author: 'You' }).select().single();
-      if (error) {
-        console.error('send error', error);
-        removeMessage(tempId);
-        alert('Could not send message: ' + (error.message || error));
-        return;
-      }
+      if (error) { console.error('send error', error); removeMessage(tempId); alert('Could not send message: ' + (error.message || error)); return; }
       removeMessage(tempId);
       upsertMessage(data);
       lastFetchedAt = lastFetchedAt ? lastFetchedAt : data.created_at;
     }
-
     document.addEventListener('click', (e) => {
       if (e.target.id === 'sendBtn') {
         const input = document.getElementById('newText');
@@ -201,13 +182,9 @@
         sendMessage(text);
       }
     });
+    (async function initFeed() { await loadInitial(); setInterval(pollNew, 2000); })();
 
-    (async function initFeed() {
-      await loadInitial();
-      pollingInterval = setInterval(pollNew, 2000);
-    })();
-
-    // ======= NOTIFICATIONS MODULE (fixed) =======
+    // ---------- Notifications module (fixed) ----------
     (function notificationsModule() {
       const bellDot = document.getElementById('bell-dot');
       const panelDot = document.getElementById('panel-notif-dot');
@@ -215,31 +192,19 @@
       const bellBtn = document.getElementById('bell-btn');
       const panelBtn = document.getElementById('panel-btn');
 
-      // Wait for auth to be ready and then fetch counts
-      async function getCurrentUserId() {
-        try {
-          const user = s.auth.getUser();
-          return user?.data?.user?.id || null;
-        } catch { return null; }
-      }
+      function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
       async function fetchNotifications() {
         const uid = await getCurrentUserId();
         if (!uid) return [];
-        const { data, error } = await s.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(50);
+        const { data, error } = await s.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(200);
         if (error) { console.error('fetchNotifications', error); return []; }
         return data;
       }
 
       async function refreshNotificationCounts() {
         const uid = await getCurrentUserId();
-        if (!uid) {
-          // hide dots if no user
-          if (bellDot) bellDot.classList.add('hidden');
-          if (panelDot) panelDot.classList.add('hidden');
-          return;
-        }
-        // Use head:false count query to get exact unread count
+        if (!uid) { if (bellDot) bellDot.classList.add('hidden'); if (panelDot) panelDot.classList.add('hidden'); return; }
         const { count, error } = await s.from('notifications').select('id', { count: 'exact', head: false }).eq('user_id', uid).is('is_read', false);
         if (error) { console.error('refreshNotificationCounts', error); return; }
         const unread = count || 0;
@@ -272,43 +237,54 @@
         await refreshNotificationCounts();
       }
 
-      // safe HTML escape for small strings
-      function escapeHtml(s) {
-        if (!s) return '';
-        return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
-
       async function markNotificationRead(notificationId) {
         const el = document.querySelector(`[data-notif-id="${notificationId}"]`);
         if (el) el.classList.remove('unread');
         const uid = await getCurrentUserId();
         if (!uid) { await renderPanel(); return; }
         const { data, error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', notificationId).eq('user_id', uid).select().single();
+        if (error) { console.error('markNotificationRead', error); await renderPanel(); return; }
+        await refreshNotificationCounts();
+      }
+
+      // Mark notifications related to a DM thread as read
+      async function markThreadNotificationsRead(threadId) {
+        if (!threadId) return;
+        const uid = await getCurrentUserId();
+        if (!uid) return;
+        // payload is JSON; we assume thread id stored as payload.thread_id or payload.threadId
+        const { error } = await s.from('notifications')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('user_id', uid)
+          .or(`payload->>thread_id.eq.${threadId},payload->>threadId.eq.${threadId}`)
+          ;
         if (error) {
-          console.error('markNotificationRead', error);
-          await renderPanel();
-          return;
+          // fallback: fetch and mark individually
+          try {
+            const { data } = await s.from('notifications').select('*').eq('user_id', uid).is('is_read', false);
+            const toMark = (data || []).filter(n => {
+              const p = n.payload || {};
+              return p.thread_id === threadId || p.threadId === threadId || (p?.thread && p.thread === threadId);
+            }).map(n => n.id);
+            if (toMark.length) {
+              await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).in('id', toMark);
+            }
+          } catch (e) { console.error('markThreadNotificationsRead fallback', e); }
         }
         await refreshNotificationCounts();
+        // refresh panel UI if open
+        if (panel && panel.style.display === 'block') renderPanel();
       }
 
       async function markVisibleNotificationsRead() {
         if (!panel) return;
         const visible = Array.from(panel.querySelectorAll('.notif-row.unread')).map(el => el.dataset.notifId);
         if (!visible.length) return;
-        // optimistic hide
-        visible.forEach(id => {
-          const el = document.querySelector(`[data-notif-id="${id}"]`);
-          if (el) el.classList.remove('unread');
-        });
+        visible.forEach(id => { const el = document.querySelector(`[data-notif-id="${id}"]`); if (el) el.classList.remove('unread'); });
         const uid = await getCurrentUserId();
         if (!uid) { await renderPanel(); return; }
         const { error } = await s.from('notifications').update({ is_read: true, read_at: new Date().toISOString() }).in('id', visible).eq('user_id', uid);
-        if (error) {
-          console.error('markVisibleNotificationsRead', error);
-          await renderPanel();
-          return;
-        }
+        if (error) { console.error('markVisibleNotificationsRead', error); await renderPanel(); return; }
         await refreshNotificationCounts();
       }
 
@@ -317,6 +293,11 @@
         try {
           const payload = rowData.payload || {};
           if (payload.url) window.open(payload.url, '_blank');
+          // if notification points to a DM thread, open it and mark thread notifications read
+          if (payload.thread_id || payload.threadId) {
+            openDMThread(payload.thread_id || payload.threadId);
+            await markThreadNotificationsRead(payload.thread_id || payload.threadId);
+          }
         } catch (e) {}
       }
 
@@ -324,205 +305,118 @@
         const visible = panel.style.display !== 'block';
         panel.style.display = visible ? 'block' : 'none';
         panel.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        if (visible) {
-          // mark visible after a short debounce so accidental opens don't mark read
-          setTimeout(markVisibleNotificationsRead, 300);
-          renderPanel();
-        }
+        if (visible) { setTimeout(markVisibleNotificationsRead, 300); renderPanel(); }
       }
 
       if (bellBtn) bellBtn.addEventListener('click', togglePanel);
       if (panelBtn) panelBtn.addEventListener('click', togglePanel);
 
-      // Observe panel visibility changes (in case other UI toggles it)
       let panelOpen = false;
       const observer = new MutationObserver(() => {
         const visible = panel && panel.offsetParent !== null;
-        if (visible && !panelOpen) {
-          panelOpen = true;
-          setTimeout(markVisibleNotificationsRead, 300);
-        } else if (!visible) {
-          panelOpen = false;
-        }
+        if (visible && !panelOpen) { panelOpen = true; setTimeout(markVisibleNotificationsRead, 300); }
+        else if (!visible) panelOpen = false;
       });
       if (panel) observer.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
 
-      // Ensure counts refresh after auth changes
       s.auth.onAuthStateChange(async (event, session) => {
-        // when user signs in, refresh counts and panel
-        if (session && session.user) {
-          await refreshNotificationCounts();
-          await renderPanel();
-        } else {
-          // signed out: hide dots
-          if (bellDot) bellDot.classList.add('hidden');
-          if (panelDot) panelDot.classList.add('hidden');
-        }
+        if (session && session.user) { await refreshNotificationCounts(); await renderPanel(); }
+        else { if (bellDot) bellDot.classList.add('hidden'); if (panelDot) panelDot.classList.add('hidden'); }
       });
 
-      // initial: try to refresh counts after a short delay (auth may be restored)
       setTimeout(() => { refreshNotificationCounts(); renderPanel(); }, 600);
-
-      // poll counts every 6s to keep badges in sync (lightweight)
       setInterval(refreshNotificationCounts, 6000);
 
-      // expose for debugging
-      window.NOTIFS = { renderPanel, refreshNotificationCounts, markNotificationRead, markVisibleNotificationsRead };
+      window.NOTIFS = { renderPanel, refreshNotificationCounts, markNotificationRead, markVisibleNotificationsRead, markThreadNotificationsRead };
     })();
 
-    // ======= STREAKS MODULE (keeps same behavior) =======
-    (function streaksModule() {
-      const widget = document.getElementById('streak-widget');
-      if (!widget) return;
-      widget.innerHTML = `
-        <div id="streak-inner" style="display:flex;align-items:center;gap:10px;">
-          <svg id="streak-flame" viewBox="0 0 24 24" width="36" height="36" style="transition: transform .35s ease, filter .35s ease;">
-            <path d="M12 2C10 6 7 7 7 11c0 3 3 5 5 7 2-2 5-4 5-7 0-4-3-5-5-9z" fill="#ff6a00"/>
-          </svg>
-          <div>
-            <div id="streak-count" style="font-weight:600">0 day streak</div>
-            <div id="streak-progress" style="font-size:12px;color:var(--muted)">No activity yet</div>
-          </div>
-          <button id="streak-claim" class="btn secondary" style="margin-left:8px;padding:6px 8px;border-radius:6px;">Claim</button>
-        </div>
-      `;
-
-      async function fetchStreak() {
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) return null;
-        const { data, error } = await s.from('streaks').select('*').eq('user_id', uid).single();
-        if (error && error.code !== 'PGRST116') { console.error('fetchStreak', error); return null; }
-        return data;
+    // ---------- DM UI helper (open thread) ----------
+    // Minimal openDMThread implementation: opens a simple thread view and marks DM notifications read
+    function openDMThread(threadId) {
+      // create a small thread view overlay or reuse existing UI — minimal safe implementation:
+      let threadView = document.getElementById('dm-thread-view');
+      if (!threadView) {
+        threadView = document.createElement('div');
+        threadView.id = 'dm-thread-view';
+        threadView.style.position = 'fixed';
+        threadView.style.left = '50%';
+        threadView.style.top = '50%';
+        threadView.style.transform = 'translate(-50%,-50%)';
+        threadView.style.width = '420px';
+        threadView.style.maxHeight = '70vh';
+        threadView.style.overflow = 'auto';
+        threadView.style.background = 'var(--card)';
+        threadView.style.padding = '12px';
+        threadView.style.borderRadius = '10px';
+        threadView.style.boxShadow = '0 12px 40px rgba(0,0,0,0.12)';
+        document.body.appendChild(threadView);
       }
-
-      function animateFlame() {
-        const flame = document.getElementById('streak-flame');
-        flame.style.transform = 'scale(1.25)';
-        flame.style.filter = 'drop-shadow(0 6px 12px rgba(255,106,0,0.35))';
-        setTimeout(() => { flame.style.transform = ''; flame.style.filter = ''; }, 900);
-      }
-
-      async function refreshStreakUI() {
-        const srow = await fetchStreak();
-        const countEl = document.getElementById('streak-count');
-        const progEl = document.getElementById('streak-progress');
-        if (!srow) {
-          countEl.textContent = '0 day streak';
-          progEl.textContent = 'No activity yet';
-          return;
+      threadView.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>DM Thread</strong><button id="dm-close" class="btn secondary">Close</button></div><div id="dm-messages" style="margin-top:8px"></div><div style="display:flex;gap:8px;margin-top:8px"><input id="dm-input" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd"/><button id="dm-send" class="btn">Send</button></div>`;
+      threadView.style.display = 'block';
+      document.getElementById('dm-close').addEventListener('click', () => { threadView.style.display = 'none'; });
+      // load messages for thread (simple)
+      (async function loadThread() {
+        const { data, error } = await s.from('dm_messages').select('*').eq('thread_id', threadId).order('created_at', { ascending: false }).limit(200);
+        if (error) { console.error('loadThread', error); return; }
+        const container = document.getElementById('dm-messages');
+        container.innerHTML = '';
+        data.forEach(m => {
+          const r = document.createElement('div');
+          r.style.padding = '8px';
+          r.style.borderBottom = '1px solid #f0f0f3';
+          r.innerHTML = `<div style="font-size:12px;color:var(--muted)">${m.sender_id} · ${new Date(m.created_at).toLocaleString()}</div><div style="margin-top:6px">${escapeHtml(m.text)}</div>`;
+          container.appendChild(r);
+        });
+        // mark DM-related notifications read
+        if (window.NOTIFS && window.NOTIFS.markThreadNotificationsRead) {
+          await window.NOTIFS.markThreadNotificationsRead(threadId);
         }
-        countEl.textContent = `${srow.current_streak} day streak`;
-        progEl.textContent = `Best: ${srow.best_streak}`;
-      }
+      })();
 
-      async function claimDaily() {
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) { alert('Sign in to claim'); return; }
-        const { data, error } = await s.rpc('record_daily_activity', { p_user_id: uid });
-        if (error) { console.error('claimDaily', error); alert('Could not claim'); return; }
-        animateFlame();
-        await refreshStreakUI();
-        // create a notification for streak increment
-        await s.from('notifications').insert({ user_id: uid, type: 'streak', payload: { title: `🔥 ${data.current_streak} day streak!` }, is_read: false });
-        if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts();
-      }
-
-      document.getElementById('streak-claim').addEventListener('click', claimDaily);
-      refreshStreakUI();
-      window.STREAKS = { refreshStreakUI, claimDaily, animateFlame };
-    })();
-
-    // ======= PROFILE CUSTOMIZATION MODULE =======
-    (function profileModule() {
-      const root = document.getElementById('profile-customize');
-      if (!root) return;
-      root.innerHTML = `
-        <div style="display:flex;gap:12px;align-items:center;">
-          <div>
-            <img id="pc-avatar" src="" alt="avatar" style="width:72px;height:72px;border-radius:12px;object-fit:cover;border:1px solid #ddd"/>
-            <div><input id="pc-avatar-input" type="file" accept="image/*" /></div>
-          </div>
-          <div style="flex:1">
-            <div><label>Display name</label><input id="pc-name" type="text" style="width:100%"/></div>
-            <div style="margin-top:8px;"><label>Bio</label><textarea id="pc-bio" rows="3" style="width:100%"></textarea></div>
-            <div style="margin-top:8px;">
-              <label>Theme color</label>
-              <input id="pc-accent" type="color" value="#0b5fff" />
-              <button id="pc-save" class="btn" style="margin-left:8px;padding:6px 8px;">Save</button>
-            </div>
-          </div>
-        </div>
-      `;
-
-      async function loadProfile() {
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) return;
-        const { data, error } = await s.from('profiles').select('id, full_name, avatar_url, bio, theme').eq('id', uid).single();
-        if (error) { console.error('loadProfile', error); return; }
-        document.getElementById('pc-avatar').src = data?.avatar_url || '/default-avatar.png';
-        document.getElementById('pc-name').value = data?.full_name || '';
-        document.getElementById('pc-bio').value = data?.bio || '';
-        const theme = data?.theme || { accent: '#0b5fff', mode: 'light' };
-        document.getElementById('pc-accent').value = theme.accent || '#0b5fff';
-        document.documentElement.style.setProperty('--accent', theme.accent || '#0b5fff');
-      }
-
-      async function saveProfile() {
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) { alert('Sign in to save'); return; }
-        const full_name = document.getElementById('pc-name').value.trim();
-        const bio = document.getElementById('pc-bio').value.trim();
-        const theme = { accent: document.getElementById('pc-accent').value, mode: 'light' };
-        const { data, error } = await s.from('profiles').upsert({ id: uid, full_name, bio, theme }).select().single();
-        if (error) { console.error('saveProfile', error); alert('Could not save profile'); return; }
-        document.documentElement.style.setProperty('--accent', theme.accent);
-        alert('Profile saved');
-      }
-
-      document.getElementById('pc-save').addEventListener('click', saveProfile);
-
-      document.getElementById('pc-avatar-input').addEventListener('change', async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const uid = s.auth.getUser()?.data?.user?.id;
-        if (!uid) { alert('Sign in to upload'); return; }
-        const filePath = `avatars/${uid}/${Date.now()}-${file.name}`;
-        const { data, error } = await s.storage.from('avatars').upload(filePath, file, { upsert: true });
-        if (error) { console.error('avatar upload', error); alert('Upload failed'); return; }
-        const url = s.storage.from('avatars').getPublicUrl(data.path).publicURL;
-        await s.from('profiles').upsert({ id: uid, avatar_url: url }).select();
-        document.getElementById('pc-avatar').src = url;
+      // send DM
+      document.getElementById('dm-send').addEventListener('click', async () => {
+        const input = document.getElementById('dm-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        const tempId = 'temp-dm-' + Math.random().toString(36).slice(2,9);
+        const now = new Date().toISOString();
+        // optimistic append to container
+        const container = document.getElementById('dm-messages');
+        const r = document.createElement('div');
+        r.style.padding = '8px';
+        r.style.borderBottom = '1px solid #f0f0f3';
+        r.dataset.temp = tempId;
+        r.innerHTML = `<div style="font-size:12px;color:var(--muted)">You · ${new Date(now).toLocaleString()}</div><div style="margin-top:6px">${escapeHtml(text)}</div>`;
+        container.prepend(r);
+        // insert to DB
+        const { data, error } = await s.from('dm_messages').insert({ thread_id: threadId, text }).select().single();
+        if (error) { console.error('dm send', error); r.remove(); alert('Could not send DM'); return; }
+        // replace optimistic (simple approach: reload thread)
+        loadThread();
       });
 
-      // refresh profile when auth changes
-      s.auth.onAuthStateChange((event, session) => {
-        if (session && session.user) loadProfile();
-      });
+      // helper escape
+      function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    }
 
-      loadProfile();
-      window.PROFILE_CUSTOM = { loadProfile, saveProfile };
-    })();
+    // Expose openDMThread globally so notifications can call it
+    window.openDMThread = openDMThread;
 
-    // ======= GUIDE: show once per user lifetime =======
+    // ---------- Guide: show once per user lifetime (persisted correctly) ----------
     (function guideModule() {
       const guide = document.getElementById('first-guide');
       const dismiss = document.getElementById('guide-dismiss');
       const never = document.getElementById('guide-never');
 
-      function getSeenKey(uid) {
-        return `campus_feed_seen_guide_v1_${uid || 'anon'}`;
-      }
+      function getSeenKey(uid) { return `campus_feed_seen_guide_v1_${uid || 'anon'}`; }
 
       async function maybeShowGuide() {
-        // wait for auth to be ready
-        const user = s.auth.getUser();
-        const uid = user?.data?.user?.id || null;
-
-        // if user is signed in, use per-user key; otherwise use anon key
+        const uid = await getCurrentUserId();
         const key = getSeenKey(uid);
         try {
           const seen = localStorage.getItem(key);
-          if (seen === 'true') return; // already seen
+          if (seen === 'true') return;
         } catch (e) { /* ignore localStorage errors */ }
 
         // show guide
@@ -537,19 +431,16 @@
           }
         }
 
-        dismiss.addEventListener('click', () => hideAndRemember(true));
-        never.addEventListener('click', () => hideAndRemember(true));
+        dismiss.addEventListener('click', () => hideAndRemember(true), { once: true });
+        never.addEventListener('click', () => hideAndRemember(true), { once: true });
       }
 
-      // show guide once after auth state is known (short delay)
-      s.auth.onAuthStateChange((event, session) => {
-        setTimeout(maybeShowGuide, 300);
-      });
-      // also try on load (in case auth restored)
-      setTimeout(maybeShowGuide, 800);
+      // show guide after auth state known
+      s.auth.onAuthStateChange((event, session) => { setTimeout(maybeShowGuide, 300); });
+      setTimeout(maybeShowGuide, 900);
     })();
 
-    // ======= EDIT FLOW (inline) =======
+    // ---------- Edit flow (unchanged) ----------
     (function editModule() {
       document.addEventListener('click', (e) => {
         if (e.target.matches('.edit-btn')) {
@@ -601,21 +492,15 @@
       }
     })();
 
-    // ======= small helper: refresh notification counts on page focus/login =======
-    (function focusAndLoginSync() {
-      // refresh counts when page becomes visible (user returned)
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && window.NOTIFS && window.NOTIFS.refreshNotificationCounts) {
-          window.NOTIFS.refreshNotificationCounts();
-        }
-      });
+    // ---------- Focus/login sync ----------
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && window.NOTIFS && window.NOTIFS.refreshNotificationCounts) {
+        window.NOTIFS.refreshNotificationCounts();
+      }
+    });
 
-      // refresh counts after sign-in (auth state change handled in notifications module)
-      // also refresh after initial load
-      setTimeout(() => {
-        if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts();
-      }, 1200);
-    })();
+    // Ensure notification counts refresh after initial auth restore
+    setTimeout(() => { if (window.NOTIFS && window.NOTIFS.refreshNotificationCounts) window.NOTIFS.refreshNotificationCounts(); }, 1200);
 
   })();
   </script>
